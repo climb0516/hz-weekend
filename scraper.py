@@ -22,6 +22,7 @@ LOOKAHEAD_DAYS = 45                   # 活动只保留这么多天内开始的
 INSECURE_HOSTS = {"caam.caa.edu.cn"}
 
 # 部分站点（浙江图书馆）只对国内解析，Actions 的海外 DNS 查不到。系统 DNS 失败时改问阿里 DoH，
+# 并带上杭州电信网段作 EDNS client subnet（否则 DoH 也按海外来源返回空）。
 # 只替换解析结果，TLS 的 SNI 和 Host 仍是原域名
 _sys_getaddrinfo = socket.getaddrinfo
 _doh_cache = {}
@@ -29,7 +30,8 @@ _doh_cache = {}
 
 def _doh_resolve(host):
     if host not in _doh_cache:
-        url = "https://dns.alidns.com/resolve?" + urllib.parse.urlencode({"name": host, "type": "A"})
+        url = "https://dns.alidns.com/resolve?" + urllib.parse.urlencode({"name": host, "type": "A",
+                                                                         "edns_client_subnet": "115.238.0.0/24"})
         with urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": UA}), timeout=10) as r:
             ans = json.loads(r.read().decode()).get("Answer", [])
         _doh_cache[host] = [a["data"] for a in ans if a.get("type") == 1]
