@@ -562,6 +562,10 @@
       try {
         PLACES = await fetch('places.json', { cache: 'no-cache' }).then(r => r.json());
         renderPlaces();
+        // 地点推荐的抓取状态并入底部「数据来源」
+        const st = PLACES.status || {};
+        $('#sources').insertAdjacentHTML('beforeend', `<div class="src" title="${esc(st.error || '')}"><i class="${st.ok ? '' : 'stale'}"></i>高德地点推荐
+          <span>${st.ok ? `${Object.keys(PLACES.districts).length} 个区` : esc(st.error || '异常') + '，沿用旧数据'}</span></div>`);
       } catch (e) { $('#pl-grid').innerHTML = '<div class="panel empty" style="grid-column:1/-1">地点数据加载失败</div>'; }
     }
     function weekendRainy() {

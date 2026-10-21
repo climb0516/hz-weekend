@@ -596,9 +596,6 @@ def places():
     except Exception:
         pass
     dists = old.get("districts", {})
-    if not key:
-        print("✗ 地点推荐: 没有 AMAP_KEY，沿用旧数据")
-        return
     today = now_cst().date()
 
     def due(code):
@@ -607,9 +604,10 @@ def places():
         return not last or (today - date.fromisoformat(last[:10])).days >= days
 
     # 余杭优先，其余按上次刷新时间从旧到新
-    order = [c for c, _ in DISTRICTS if due(c)]
+    # 没有 key 时不请求，但照常写出文件，把原因记进 status，网页底部能看到
+    order = [c for c, _ in DISTRICTS if due(c)] if key else []
     order.sort(key=lambda c: (c != DEFAULT_DISTRICT, dists.get(c, {}).get("updated") or ""))
-    calls, done, err = 0, [], None
+    calls, done, err = 0, [], None if key else "缺少 AMAP_KEY（仓库 Settings → Secrets → Actions）"
     names = dict(DISTRICTS)
     for code in order:
         need = sum(len(k) for _, _, k in PLACE_CATS)
