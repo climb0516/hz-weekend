@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark light">
+  <title>杭州周末指南</title>
+  <meta name="description" content="杭州本周末天气、空气、出行建议，以及展览、免费讲座、演出玩乐">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌤</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0b0d;
+      --panel: #13161a;
+      --panel-2: #191d22;
+      --hover: rgba(255,255,255,0.04);
+      --line: rgba(255,255,255,0.07);
+      --line-2: rgba(255,255,255,0.14);
+      --text-1: #eef1f3;
+      --text-2: #a3abb3;
+      --text-3: #69727b;
+      --accent: #5eead4;
+      --accent-2: #fbbf24;
+      --grad: linear-gradient(120deg, #5eead4 0%, #38bdf8 50%, #a78bfa 100%);
+      --sun: #fbbf24;
+      --rain: #60a5fa;
+      --good: #34d399;
+      --warn: #fbbf24;
+      --bad: #f87171;
+      --shadow: 0 0 0 1px var(--line), 0 12px 32px rgba(0,0,0,0.35);
+    }
+    :root[data-theme="light"] {
+      --bg: #f6f7f9;
+      --panel: #ffffff;
+      --panel-2: #f2f4f7;
+      --hover: rgba(15,25,40,0.035);
+      --line: rgba(15,25,40,0.08);
+      --line-2: rgba(15,25,40,0.16);
+      --text-1: #121821;
+      --text-2: #4d5866;
+      --text-3: #8a94a1;
+      --accent: #0d9488;
+      --accent-2: #d97706;
+      --sun: #d97706;
+      --rain: #2563eb;
+      --good: #059669;
+      --warn: #d97706;
+      --bad: #dc2626;
+      --shadow: 0 0 0 1px var(--line), 0 10px 28px rgba(15,25,40,0.06);
+    }
+
+    body {
+      background: var(--bg); color: var(--text-1);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      font-size: 14px; line-height: 1.55; -webkit-font-smoothing: antialiased; min-height: 100vh;
+    }
+    a { color: inherit; text-decoration: none; }
+    button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+    .num { font-variant-numeric: tabular-nums; }
+
+    /* 顶栏 */
+    .topbar { position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--bg) 94%, transparent); border-bottom: 1px solid var(--line); }
+    .topbar-inner { max-width: 1240px; margin: 0 auto; padding: 12px 20px; display: flex; align-items: center; gap: 16px; }
+    .logo { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 17px; letter-spacing: -0.02em; white-space: nowrap; }
+    .logo-mark { width: 30px; height: 30px; border-radius: 9px; background: var(--grad); display: grid; place-items: center; font-size: 16px; }
+    .nav { display: flex; gap: 4px; background: var(--hover); border: 1px solid var(--line); border-radius: 11px; padding: 3px; }
+    .nav a { padding: 6px 12px; border-radius: 8px; color: var(--text-2); font-weight: 600; font-size: 13px; white-space: nowrap; }
+    .nav a:hover { color: var(--text-1); background: var(--panel); }
+    .spacer { flex: 1; }
+    .updated { font-size: 12px; color: var(--text-3); white-space: nowrap; display: flex; align-items: center; gap: 6px; }
+    .live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent); }
+    .live-dot.stale { background: var(--warn); box-shadow: 0 0 0 3px color-mix(in srgb, var(--warn) 25%, transparent); }
+    .icon-btn { width: 34px; height: 34px; border-radius: 10px; border: 1px solid var(--line); display: grid; place-items: center; color: var(--text-2); flex-shrink: 0; }
+    .icon-btn:hover { color: var(--text-1); border-color: var(--line-2); }
+    .icon-btn.spin svg { animation: spin .8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* 布局 */
+    .wrap { max-width: 1240px; margin: 0 auto; padding: 22px 20px 60px; }
+    .panel { background: var(--panel); border-radius: 14px; box-shadow: var(--shadow); }
+    .hero { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
+    .hero h1 { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; }
+    .hero h1 em { font-style: normal; background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .hero p { color: var(--text-2); margin-top: 4px; }
+    .verdict { font-size: 15px; font-weight: 600; color: var(--text-1); margin-top: 8px; max-width: 760px; }
+    .section-title { font-size: 17px; font-weight: 800; margin: 34px 0 12px; display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; scroll-margin-top: 70px; }
+    .section-title small { color: var(--text-3); font-weight: 500; font-size: 12.5px; }
+
+    .chips { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+    .chip { padding: 5px 12px; border-radius: 999px; border: 1px solid var(--line); color: var(--text-2); font-size: 12.5px; font-weight: 500; white-space: nowrap; }
+    .chip:hover { border-color: var(--line-2); color: var(--text-1); }
+    .chip.active { background: var(--text-1); color: var(--bg); border-color: var(--text-1); }
+    .chip .n { opacity: .6; margin-left: 4px; font-variant-numeric: tabular-nums; }
+    .chip-sep { width: 1px; background: var(--line-2); margin: 3px 4px; }
+
+    .badge { display: inline-flex; align-items: center; padding: 1px 7px; border-radius: 6px; font-size: 11.5px; font-weight: 600; white-space: nowrap; background: var(--hover); color: var(--text-2); border: 1px solid var(--line); }
+    .badge.free { color: var(--good); border-color: color-mix(in srgb, var(--good) 35%, transparent); background: color-mix(in srgb, var(--good) 10%, transparent); }
+    .badge.ending { color: var(--bad); border-color: color-mix(in srgb, var(--bad) 35%, transparent); background: color-mix(in srgb, var(--bad) 10%, transparent); }
+    .badge.new { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 35%, transparent); background: color-mix(in srgb, var(--accent) 10%, transparent); }
+    .badge.soon { color: var(--accent-2); border-color: color-mix(in srgb, var(--accent-2) 35%, transparent); background: color-mix(in srgb, var(--accent-2) 10%, transparent); }
+
+    /* 预警 */
+    .alarm { padding: 12px 16px; border-radius: 12px; margin-bottom: 14px; border: 1px solid color-mix(in srgb, var(--bad) 40%, transparent); background: color-mix(in srgb, var(--bad) 10%, transparent); }
+    .alarm b { color: var(--bad); }
+    .alarm p { color: var(--text-2); font-size: 13px; margin-top: 4px; }
+
+    /* 周末天气 */
+    .wk { display: grid; grid-template-columns: 1fr 1fr 320px; gap: 14px; }
+    .day { padding: 18px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+    .day-head { display: flex; justify-content: space-between; align-items: baseline; }
+    .day-name { font-size: 15px; font-weight: 800; }
+    .day-date { color: var(--text-3); font-size: 12.5px; }
+    .day-main { display: flex; align-items: center; gap: 14px; }
+    .day-ico { font-size: 44px; line-height: 1; }
+    .day-temp { font-size: 30px; font-weight: 800; letter-spacing: -0.02em; }
+    .day-temp span { color: var(--text-3); font-weight: 600; font-size: 20px; }
+    .day-text { color: var(--text-2); font-weight: 600; }
+    .day-stats { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 8px; }
+    .stat { background: var(--panel-2); border-radius: 10px; padding: 8px 10px; min-width: 0; }
+    .stat label { display: block; font-size: 11.5px; color: var(--text-3); }
+    .stat b { font-size: 14.5px; font-weight: 700; }
+    .rainbar { display: grid; grid-template-columns: repeat(15, 1fr); gap: 3px; align-items: end; height: 46px; }
+    .rainbar i { display: block; border-radius: 3px 3px 1px 1px; background: var(--rain); min-height: 2px; opacity: .85; }
+    .rainaxis { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-3); margin-top: 4px; }
+    .tip { font-size: 13px; color: var(--text-1); padding: 10px 12px; border-radius: 10px; background: color-mix(in srgb, var(--accent) 9%, transparent); border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent); }
+    .tip.indoor { background: color-mix(in srgb, var(--rain) 9%, transparent); border-color: color-mix(in srgb, var(--rain) 28%, transparent); }
+
+    .side { padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+    .side h3 { font-size: 13px; font-weight: 700; color: var(--text-2); }
+    .now { display: flex; align-items: center; gap: 12px; }
+    .now b { font-size: 26px; font-weight: 800; }
+    .kv { display: flex; justify-content: space-between; font-size: 13px; padding: 6px 0; border-bottom: 1px dashed var(--line); gap: 10px; }
+    .kv:last-child { border-bottom: 0; }
+    .kv span:first-child { color: var(--text-3); white-space: nowrap; }
+    .kv span:last-child { text-align: right; }
+    .idx { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .idx div { background: var(--panel-2); border-radius: 9px; padding: 7px 9px; font-size: 12px; min-width: 0; }
+    .idx div b { display: block; font-size: 13px; }
+    .idx div span { color: var(--text-3); }
+
+    /* 10 天 */
+    .days10 { display: grid; grid-template-columns: repeat(10, minmax(0,1fr)); gap: 6px; padding: 12px; margin-top: 14px; }
+    .d10 { text-align: center; padding: 8px 2px; border-radius: 10px; min-width: 0; }
+    .d10.we { background: var(--panel-2); }
+    .d10 .w { font-size: 12px; font-weight: 700; }
+    .d10 .dt { font-size: 11px; color: var(--text-3); }
+    .d10 .ic { font-size: 22px; margin: 4px 0; }
+    .d10 .t { font-size: 12.5px; font-weight: 600; }
+    .d10 .p { font-size: 11px; color: var(--rain); }
+
+    /* 展览卡片 */
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 14px; }
+    .card { display: flex; flex-direction: column; overflow: hidden; min-width: 0; transition: transform .15s; }
+    .card:hover { transform: translateY(-2px); }
+    .poster { aspect-ratio: 4 / 3; background: var(--panel-2) center / cover no-repeat; position: relative; }
+    .poster .ph { position: absolute; inset: 0; display: grid; place-items: center; font-size: 36px; opacity: .35; }
+    .card-body { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+    .card-title { font-weight: 700; font-size: 14.5px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .card-meta { font-size: 12.5px; color: var(--text-2); }
+    .card-meta.dim { color: var(--text-3); }
+    .badges { display: flex; gap: 5px; flex-wrap: wrap; margin-top: auto; padding-top: 4px; }
+
+    /* 列表 */
+    .list { overflow: hidden; }
+    .row { display: grid; grid-template-columns: 64px minmax(0,1fr) auto; gap: 14px; padding: 12px 16px; border-bottom: 1px solid var(--line); align-items: center; }
+    .row:last-child { border-bottom: 0; }
+    .row:hover { background: var(--hover); }
+    .thumb { width: 64px; height: 64px; border-radius: 10px; background: var(--panel-2) center / cover no-repeat; display: grid; place-items: center; font-size: 24px; }
+    .row-title { font-weight: 600; font-size: 14px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .row-meta { font-size: 12.5px; color: var(--text-2); margin-top: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .row-right { text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 5px; }
+    .fee { font-size: 13px; font-weight: 700; white-space: nowrap; }
+    .fee.free { color: var(--good); }
+    .empty { padding: 28px; text-align: center; color: var(--text-3); }
+    .more { display: block; width: 100%; padding: 11px; color: var(--text-2); font-weight: 600; font-size: 13px; border-top: 1px solid var(--line); }
+    .more:hover { color: var(--text-1); background: var(--hover); }
+
+    /* 来源 */
+    .sources { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; padding: 14px; }
+    .src { display: flex; align-items: center; gap: 8px; font-size: 12.5px; min-width: 0; }
+    .src i { width: 8px; height: 8px; border-radius: 50%; background: var(--good); flex-shrink: 0; }
+    .src i.stale { background: var(--warn); }
+    .src i.fail { background: var(--bad); }
+    .src span { color: var(--text-3); margin-left: auto; white-space: nowrap; }
+    .foot { color: var(--text-3); font-size: 12px; margin-top: 18px; line-height: 1.7; }
+
+    @media (max-width: 1080px) {
+      .wk { grid-template-columns: 1fr 1fr; }
+      .wk .side { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+    }
+    @media (max-width: 760px) {
+      .topbar-inner { padding: 10px 16px; gap: 10px; }
+      .nav, .updated .txt { display: none; }
+      .wrap { padding: 16px 16px 48px; }
+      .hero h1 { font-size: 22px; }
+      .wk { grid-template-columns: 1fr; }
+      .wk .side { display: flex; }
+      .days10 { grid-template-columns: repeat(5, minmax(0,1fr)); }
+      .grid { grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; }
+      .card-title { font-size: 13.5px; }
+      .row { grid-template-columns: 48px minmax(0,1fr); gap: 10px; padding: 11px 12px; }
+      .thumb { width: 48px; height: 48px; font-size: 20px; }
+      .row-right { grid-column: 2; flex-direction: row; justify-content: flex-start; align-items: center; }
+      .chips { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+      .chips::-webkit-scrollbar { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="logo"><div class="logo-mark">🌤</div>杭州周末指南</div>
+      <nav class="nav">
+        <a href="#weather">天气</a><a href="#exhibitions">展览</a><a href="#free">免费活动</a><a href="#fun">演出玩乐</a>
+      </nav>
+      <div class="spacer"></div>
+      <div class="updated"><span class="live-dot" id="dot"></span><span class="txt" id="updated">加载中…</span></div>
+      <button class="icon-btn" id="reload" title="重新读取数据">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>
+      </button>
+      <a class="icon-btn" href="https://github.com/climb0516/hz-weekend/actions/workflows/scrape.yml" target="_blank" rel="noopener" title="去 GitHub Actions 手动触发抓取">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+      </a>
+      <button class="icon-btn" id="theme" title="切换深浅色">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="hero" id="weather">
+      <div>
+        <h1>杭州 · <em id="wk-title">本周末</em></h1>
+        <p id="wk-sub"></p>
+        <div class="verdict" id="verdict"></div>
+      </div>
+    </section>
+    <div id="alarms"></div>
+    <div class="wk">
+      <div class="panel day" id="day0"></div>
+      <div class="panel day" id="day1"></div>
+      <aside class="panel side" id="side"></aside>
+    </div>
+    <div class="panel days10" id="days10"></div>
+
+    <h2 class="section-title" id="exhibitions">🖼 展览 <small id="exh-sub"></small></h2>
+    <div class="chips" id="exh-filter"></div>
+    <div class="grid" id="exh-grid"></div>
+
+    <h2 class="section-title" id="free">🎟 免费活动 · 讲座 <small>浙江图书馆、杭州图书馆、豆瓣同城标注免费的活动</small></h2>
+    <div class="chips" id="free-filter"></div>
+    <div class="panel list" id="free-list"></div>
+
+    <h2 class="section-title" id="fun">🎭 演出 & 玩乐 <small>豆瓣同城本周末活动 + 秀动新开票演出</small></h2>
+    <div class="chips" id="fun-filter"></div>
+    <div class="panel list" id="fun-list"></div>
+
+    <h2 class="section-title">📡 数据来源</h2>
+    <div class="panel sources" id="sources"></div>
+    <p class="foot">
+      天气每 3 小时自动抓取一次：数值来自 Open-Meteo，中文天气描述、生活指数、空气质量预报来自中国天气网。展览以各馆官网为准，豆瓣同城、秀动为第三方发布，时间票价以活动页为准。<br>
+      浙江省博物馆、浙江自然博物院等需提前在官方小程序预约。杭州限行为工作日早晚高峰错峰限行，周末和法定节假日不限行。
+    </p>
+  </main>
+
+  <script>
+    const $ = s => document.querySelector(s);
+    const store = {
+      get(k, d) { try { const v = localStorage.getItem('hzw:' + k); return v === null ? d : JSON.parse(v); } catch { return d; } },
+      set(k, v) { try { localStorage.setItem('hzw:' + k, JSON.stringify(v)); } catch {} },
+    };
+    const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const WEEK = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+    const pd = s => { const [y, m, d] = s.slice(0, 10).split('-').map(Number); return new Date(y, m - 1, d); };
+    const md = s => { const d = pd(s); return `${d.getMonth() + 1}/${d.getDate()}`; };
+    const dayDiff = (a, b) => Math.round((pd(b) - pd(a)) / 86400000);
+    const todayStr = () => { const d = new Date(Date.now() + (480 + new Date().getTimezoneOffset()) * 60000); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+
+    // 天气图标：优先按中国天气网中文描述，退回 Open-Meteo WMO 代码
+    function icon(text, code) {
+      const t = text || '';
+      if (/雷/.test(t)) return '⛈';
+      if (/雪/.test(t)) return '🌨';
+      if (/暴雨|大雨/.test(t)) return '🌧';
+      if (/雨/.test(t)) return /晴|云/.test(t) ? '🌦' : '🌧';
+      if (/雾|霾/.test(t)) return '🌫';
+      if (/阴/.test(t)) return '☁️';
+      if (/多云/.test(t)) return /晴/.test(t) ? '🌤' : '⛅';
+      if (/晴/.test(t)) return '☀️';
+      if (code == null) return '🌡';
+      if (code >= 95) return '⛈';
+      if (code >= 71 && code <= 86 && !(code >= 80 && code <= 82)) return '🌨';
+      if (code >= 51) return '🌧';
+      if (code >= 45) return '🌫';
+      if (code === 3) return '☁️';
+      if (code >= 1) return '⛅';
+      return '☀️';
+    }
+    const WMO = c => c >= 95 ? '雷雨' : c >= 80 ? '阵雨' : c >= 71 ? '雪' : c >= 61 ? '雨' : c >= 51 ? '毛毛雨' : c >= 45 ? '雾' : c === 3 ? '阴' : c >= 1 ? '多云' : '晴';
+    const aqiColor = lv => /优/.test(lv) ? 'var(--good)' : /良/.test(lv) ? 'var(--warn)' : lv ? 'var(--bad)' : 'var(--text-3)';
+
+    // 出行建议：按降雨、空气、温度给一句话
+    function advise(d) {
+      if (!d) return { indoor: false, text: '暂无预报' };
+      const rainy = d.pop >= 60 || d.rain >= 5 || /雨|雪/.test(d.text || '');
+      const tips = [];
+      let indoor = false;
+      if (rainy && (d.rain >= 10 || /中雨|大雨|暴雨/.test(d.text || ''))) { indoor = true; tips.push('雨不小，室内为主：逛展、图书馆、看演出'); }
+      else if (rainy) { indoor = true; tips.push('有雨，带伞；户外可选灵隐、龙井这类有遮蔽的线路，或安排室内'); }
+      else if (d.tmax >= 33) tips.push('偏热，户外放在早晚，午后去室内');
+      else if (d.tmax <= 8) tips.push('偏冷，户外注意保暖');
+      else tips.push('适合户外：西湖骑行、九溪徒步、宝石山看日落');
+      if (/中度|重度|严重/.test(d.aqi_level || '')) { indoor = true; tips.push('空气较差，减少户外运动'); }
+      if (d.uv >= 7 && !rainy) tips.push('紫外线强，注意防晒');
+      if (d.tmax - d.tmin >= 10) tips.push(`昼夜温差 ${d.tmax - d.tmin}°，带件外套`);
+      return { indoor, text: tips.join('；') };
+    }
+
+    function renderDay(el, d, hourly, label) {
+      if (!d) { el.innerHTML = `<div class="empty">${label}暂无预报</div>`; return; }
+      const a = advise(d);
+      const hrs = (hourly || []).filter(h => h.h >= 8 && h.h <= 22);
+      const aqi = d.aqi != null ? `${d.aqi} <small style="color:${aqiColor(d.aqi_level)}">${esc(d.aqi_level)}</small>`
+        : d.aqi_level ? `<span style="color:${aqiColor(d.aqi_level)}">${esc(d.aqi_level)}</span>` : '—';
+      el.innerHTML = `
+        <div class="day-head"><span class="day-name">${label}</span><span class="day-date">${md(d.date)} · 日出 ${esc(d.sunrise)} 日落 ${esc(d.sunset)}</span></div>
+        <div class="day-main">
+          <div class="day-ico">${icon(d.text, d.code)}</div>
+          <div><div class="day-temp num">${d.tmax}°<span> / ${d.tmin}°</span></div><div class="day-text">${esc(d.text || WMO(d.code))}${d.wind ? ' · ' + esc(d.wind) : ''}</div></div>
+        </div>
+        <div class="day-stats">
+          <div class="stat"><label>降雨概率</label><b class="num" style="color:${d.pop >= 60 ? 'var(--rain)' : 'inherit'}">${d.pop ?? '—'}%</b></div>
+          <div class="stat"><label>降水量</label><b class="num">${d.rain ?? '—'} mm</b></div>
+          <div class="stat"><label>空气 AQI</label><b class="num">${aqi}</b></div>
+        </div>
+        ${hrs.length ? `<div><div class="rainbar" title="8 点到 22 点逐小时降雨概率">${hrs.map(h => `<i style="height:${Math.max(4, h.pop)}%" title="${h.h} 点 · ${h.t}° · 降雨 ${h.pop}%"></i>`).join('')}</div>
+          <div class="rainaxis"><span>8 点</span><span>逐小时降雨概率</span><span>22 点</span></div></div>` : ''}
+        <div class="tip ${a.indoor ? 'indoor' : ''}">${a.indoor ? '🏛' : '🚲'} ${esc(a.text)}</div>`;
+    }
+
+    function renderSide(data) {
+      const n = data.now || {};
+      const idx = (data.indices || []).filter(x => ['ct', 'yd', 'tr', 'uv', 'gm', 'ls'].includes(x.key));
+      $('#side').innerHTML = `
+        <div><h3>此刻 ${n.time ? '· ' + esc(n.time) + ' 发布' : ''}</h3>
+          <div class="now" style="margin-top:8px"><span style="font-size:32px">${icon(n.weather, n.code)}</span><b class="num">${n.temp != null ? Math.round(n.temp) + '°' : '—'}</b>
+          <span style="color:var(--text-2)">${esc(n.weather || WMO(n.code))}</span></div></div>
+        <div>
+          <div class="kv"><span>风</span><span>${esc(n.wind || '—')}</span></div>
+          <div class="kv"><span>湿度</span><span>${esc(n.humidity || '—')}</span></div>
+          <div class="kv"><span>空气 AQI</span><span class="num">${esc(n.aqi || '—')}</span></div>
+          <div class="kv"><span>今日限行尾号</span><span>${n.limit ? esc(n.limit) + '<br><small style="color:var(--text-3)">周末不限行</small>' : '周末不限行'}</span></div>
+        </div>
+        ${idx.length ? `<div><h3 style="margin-bottom:8px">今日生活指数</h3><div class="idx">${idx.map(x => `<div title="${esc(x.desc)}"><span>${esc(x.name)}</span><b>${esc(x.hint)}</b></div>`).join('')}</div></div>` : ''}`;
+    }
+
+    function renderWeather(data) {
+      const [sat, sun] = data.weekend;
+      const byDate = Object.fromEntries((data.daily || []).map(d => [d.date, d]));
+      const today = todayStr();
+      const inWeekend = today === sat || today === sun;
+      $('#wk-title').textContent = inWeekend ? '这个周末' : '本周末';
+      $('#wk-sub').textContent = `${md(sat)} 周六 – ${md(sun)} 周日` + (inWeekend ? '' : ` · 还有 ${dayDiff(today, sat)} 天`);
+      const s = byDate[sat], u = byDate[sun];
+      const as = advise(s), au = advise(u);
+      let v;
+      if (!s && !u) v = '周末预报还没出来。';
+      else if (as.indoor && au.indoor) v = '☔ 两天都有雨，安排室内：下面的展览和讲座正好用得上。';
+      else if (as.indoor && !au.indoor) v = '周六有雨、周日转好：周六逛展，周日出门。';
+      else if (!as.indoor && au.indoor) v = '周六天气好、周日有雨：户外放周六，周日留给室内。';
+      else v = '🌿 两天都适合出门。';
+      $('#verdict').textContent = v;
+      renderDay($('#day0'), s, data.hourly?.[sat], '周六');
+      renderDay($('#day1'), u, data.hourly?.[sun], '周日');
+      renderSide(data);
+      $('#alarms').innerHTML = (data.alarms || []).map(a =>
+        `<div class="alarm"><b>⚠️ ${esc(a.type)}${esc(a.level)}预警</b>${a.time ? ` <small style="color:var(--text-3)">${esc(a.time)}</small>` : ''}<p>${esc(a.desc)}</p></div>`).join('');
+      $('#days10').innerHTML = (data.daily || []).map(d => {
+        const w = pd(d.date).getDay();
+        return `<div class="d10 ${w === 0 || w === 6 ? 'we' : ''}" title="${esc(d.text || WMO(d.code))}">
+          <div class="w">${d.date === today ? '今天' : WEEK[w]}</div><div class="dt">${md(d.date)}</div>
+          <div class="ic">${icon(d.text, d.code)}</div><div class="t num">${d.tmin}~${d.tmax}°</div><div class="p num">${d.pop ?? 0}%</div></div>`;
+      }).join('');
+    }
+
+    // ── 展览 ──
+    const exhState = { f: store.get('exhF', 'weekend'), venue: 'all' };
+    function exhTags(x, sat, sun, today) {
+      const tags = [];
+      if (x.free) tags.push(['free', x.fee || '免费']);
+      else if (x.fee) tags.push(['', x.fee]);
+      if (x.end && x.start && dayDiff(x.start, x.end) > 400) tags.push(['', '常设']);
+      else if (x.end) {
+        const left = dayDiff(today, x.end);
+        if (left <= 14) tags.push(['ending', left <= 0 ? '今天最后一天' : `还剩 ${left} 天`]);
+      }
+      if (x.start && x.start > today) tags.push(['soon', `${md(x.start)} 开展`]);
+      else if (x.start && dayDiff(x.start, today) <= 10) tags.push(['new', '新展']);
+      return tags;
+    }
+    function renderExh(data) {
+      const [sat, sun] = data.weekend, today = todayStr();
+      const all = (data.exhibitions || []).map(x => ({ ...x, tags: exhTags(x, sat, sun, today) }));
+      const onWeekend = x => !x.start || (x.start <= sun && (!x.end || x.end >= sat));
+      const filters = {
+        weekend: ['本周末在展', onWeekend],
+        ending: ['即将撤展', x => x.end && dayDiff(today, x.end) <= 14 && dayDiff(today, x.end) >= 0],
+        new: ['新开 / 即将开展', x => x.start && (x.start > today || dayDiff(x.start, today) <= 10)],
+        free: ['免费', x => x.free],
+        all: ['全部', () => true],
+      };
+      if (!filters[exhState.f]) exhState.f = 'weekend';
+      const venues = [...new Set(all.map(x => x.source))];
+      $('#exh-filter').innerHTML = Object.entries(filters).map(([k, [name, fn]]) =>
+        `<button class="chip ${exhState.f === k ? 'active' : ''}" data-f="${k}">${name}<span class="n">${all.filter(fn).length}</span></button>`).join('')
+        + '<span class="chip-sep"></span>'
+        + ['all', ...venues].map(v => `<button class="chip ${exhState.venue === v ? 'active' : ''}" data-v="${esc(v)}">${v === 'all' ? '全部场馆' : esc(v)}</button>`).join('');
+      const list = all.filter(filters[exhState.f][1]).filter(x => exhState.venue === 'all' || x.source === exhState.venue)
+        .sort((a, b) => (a.end || '9999').localeCompare(b.end || '9999'));
+      $('#exh-sub').textContent = `${all.length} 个展览 · 按撤展时间排序，快结束的在前`;
+      $('#exh-grid').innerHTML = list.length ? list.map(x => `
+        <a class="panel card" href="${esc(x.url)}" target="_blank" rel="noopener">
+          <div class="poster" ${x.img ? `data-bg="${esc(x.img)}"` : ''}><div class="ph">🖼</div></div>
+          <div class="card-body">
+            <div class="card-title">${esc(x.title)}</div>
+            <div class="card-meta">${esc(x.venue)}${x.hall ? ' · ' + esc(x.hall) : ''}</div>
+            <div class="card-meta dim num">${x.start ? `${md(x.start)} – ${x.end ? md(x.end) + (x.end.slice(0, 4) !== today.slice(0, 4) ? ` (${x.end.slice(0, 4)})` : '') : '未定'}` : x.published ? `展期见官网 · 发布于 ${md(x.published)}` : '展期见官网'}</div>
+            <div class="badges">${x.tags.map(([c, t]) => `<span class="badge ${c}">${esc(t)}</span>`).join('')}</div>
+          </div>
+        </a>`).join('') : '<div class="panel empty" style="grid-column:1/-1">这个筛选下没有展览</div>';
+      loadPosters($('#exh-grid'));
+    }
+    $('#exh-filter').addEventListener('click', e => {
+      const b = e.target.closest('.chip'); if (!b) return;
+      if (b.dataset.f) { exhState.f = b.dataset.f; store.set('exhF', exhState.f); }
+      if (b.dataset.v) exhState.venue = b.dataset.v;
+      renderExh(DATA);
+    });
+
+    // 豆瓣海报有防盗链，去掉 referrer 再加载；加载失败保留占位
+    function loadPosters(root) {
+      root.querySelectorAll('[data-bg]').forEach(el => {
+        const img = new Image();
+        img.referrerPolicy = 'no-referrer';
+        img.onload = () => { el.style.backgroundImage = `url("${img.src}")`; el.querySelector('.ph')?.remove(); el.textContent = ''; };
+        img.src = el.dataset.bg;
+      });
+    }
+
+    // ── 活动列表（免费 / 玩乐共用）──
+    function whenText(x) {
+      if (x.start) {
+        const s = x.start.replace('T', ' '), e = (x.end || '').replace('T', ' ');
+        const hm = s.slice(11, 16);
+        if (!e || s.slice(0, 10) === e.slice(0, 10)) return `${md(s)} ${WEEK[pd(s).getDay()]}${hm ? ' ' + hm : ''}`;
+        // 已经开始的长期活动（常驻演出、每周读书会）只说截止日
+        if (s.slice(0, 10) < todayStr()) return `进行中 · 至 ${md(e)}`;
+        return `${md(s)} – ${md(e)}`;
+      }
+      return x.published ? `发布于 ${md(x.published)}，时间见详情` : '';
+    }
+    const catIcon = c => ({ 讲座: '🎤', 沙龙: '☕', 展览: '🖼', 阅读推广: '📚', 培训: '📝', 戏剧: '🎭', 音乐: '🎵', 演出: '🎸', 电影: '🎬', 聚会: '🥂', 运动: '🏸', 体验: '✨', 市集: '🛍' }[c] || '📌');
+    function rowHtml(x) {
+      return `<a class="row" href="${esc(x.url)}" target="_blank" rel="noopener">
+        <div class="thumb" ${x.img ? `data-bg="${esc(x.img)}"` : ''}><span class="ph">${catIcon(x.cat)}</span></div>
+        <div style="min-width:0"><div class="row-title">${esc(x.title)}</div>
+          <div class="row-meta">${esc(whenText(x))}${x.place ? ' · ' + esc(x.place) : ''}</div></div>
+        <div class="row-right"><span class="fee ${x.free ? 'free' : ''}">${esc(x.fee || '')}</span><span class="badge">${esc(x.cat)} · ${esc(x.source)}</span></div>
+      </a>`;
+    }
+    function renderList(opts) {
+      const { items, filterEl, listEl, state, key, emptyText } = opts;
+      const cats = {};
+      items.forEach(x => cats[x.cat] = (cats[x.cat] || 0) + 1);
+      const names = ['all', ...Object.keys(cats).sort((a, b) => cats[b] - cats[a])];
+      if (!names.includes(state.cat)) state.cat = 'all';
+      filterEl.innerHTML = names.map(c => `<button class="chip ${state.cat === c ? 'active' : ''}" data-c="${esc(c)}">${c === 'all' ? '全部' : catIcon(c) + ' ' + esc(c)}<span class="n">${c === 'all' ? items.length : cats[c]}</span></button>`).join('')
+        + (opts.freeToggle ? `<span class="chip-sep"></span><button class="chip ${state.free ? 'active' : ''}" data-free="1">只看免费</button>` : '');
+      const list = items.filter(x => (state.cat === 'all' || x.cat === state.cat) && (!state.free || x.free));
+      const shown = state.expanded ? list : list.slice(0, 12);
+      listEl.innerHTML = (shown.length ? shown.map(rowHtml).join('') : `<div class="empty">${emptyText}</div>`)
+        + (list.length > shown.length ? `<button class="more" data-more="1">展开全部 ${list.length} 条</button>` : '');
+      loadPosters(listEl);
+      filterEl.onclick = e => {
+        const b = e.target.closest('.chip'); if (!b) return;
+        if (b.dataset.c) state.cat = b.dataset.c;
+        if (b.dataset.free) state.free = !state.free;
+        state.expanded = false; store.set(key, { cat: state.cat, free: state.free });
+        renderList(opts);
+      };
+      listEl.onclick = e => { if (e.target.closest('[data-more]')) { state.expanded = true; renderList(opts); } };
+    }
+
+    const freeState = { ...store.get('free', { cat: 'all' }), expanded: false };
+    const funState = { ...store.get('fun', { cat: 'all', free: false }), expanded: false };
+    function sortKey(x) { return (x.start || x.published || '').replace('T', ' '); }
+    function renderEvents(data) {
+      const [sat, sun] = data.weekend;
+      // 免费活动：图书馆全部 + 豆瓣标免费的（且与周末有交集）
+      const overlap = x => !x.start || (x.start.slice(0, 10) <= sun && (x.end || x.start).slice(0, 10) >= sat);
+      const dbFree = (data.events || []).filter(x => x.free && overlap(x));
+      // 有明确时间且落在周末的排前面；杭图只有发布日期，只留最近 3 周发布的，按发布时间倒序
+      const today = todayStr();
+      const free = [...(data.free || []), ...dbFree]
+        .filter(x => !x.published || dayDiff(x.published, today) <= 21)
+        .map(x => ({ ...x, _g: x.start ? (overlap(x) ? 0 : 1) : 2 }))
+        .sort((a, b) => a._g - b._g || (a._g === 2 ? (b.published || '').localeCompare(a.published || '') : sortKey(a).localeCompare(sortKey(b))));
+      renderList({ items: free, filterEl: $('#free-filter'), listEl: $('#free-list'), state: freeState, key: 'free', emptyText: '暂无免费活动' });
+      // 玩乐：豆瓣周末（非免费）+ 秀动未来演出。周末当天开场的 > 周末仍在进行的长期活动 > 之后的演出
+      const startsOnWeekend = x => x.start && x.start.slice(0, 10) >= sat && x.start.slice(0, 10) <= sun;
+      const fun = (data.events || []).filter(x => !(x.free && overlap(x)))
+        .map(x => ({ ...x, _w: startsOnWeekend(x) ? 0 : overlap(x) ? 1 : 2 }))
+        .sort((a, b) => a._w - b._w || (a._w === 1 ? (a.end || '').localeCompare(b.end || '') : sortKey(a).localeCompare(sortKey(b))));
+      renderList({ items: fun, filterEl: $('#fun-filter'), listEl: $('#fun-list'), state: funState, key: 'fun', freeToggle: false, emptyText: '暂无活动' });
+    }
+
+    function renderSources(data) {
+      const srcs = data.sources || [];
+      $('#sources').innerHTML = srcs.map(s => `<div class="src" title="${esc(s.error || '')}"><i class="${s.ok ? '' : s.stale ? 'stale' : 'fail'}"></i>${esc(s.name)}
+        <span>${s.ok ? s.count + ' 条' : s.stale ? '旧数据' : '失败'}</span></div>`).join('');
+      const bad = srcs.filter(s => !s.ok).length;
+      $('#dot').classList.toggle('stale', bad > 0);
+      const t = new Date(data.updated);
+      $('#updated').textContent = `${t.getMonth() + 1}/${t.getDate()} ${String(t.getHours()).padStart(2, '0')}:${String(t.getMinutes()).padStart(2, '0')} 更新` + (bad ? ` · ${bad} 个来源异常` : '');
+    }
+
+    let DATA = null;
+    async function load() {
+      const btn = $('#reload');
+      btn.classList.add('spin');
+      try {
+        // no-cache：每次向服务器校验，更新后立刻可见；失败时保留现有内容
+        const d = await fetch('data.json', { cache: 'no-cache' }).then(r => r.json());
+        DATA = d;
+        renderWeather(d); renderExh(d); renderEvents(d); renderSources(d);
+      } catch (e) {
+        if (!DATA) $('#updated').textContent = '数据加载失败';
+        console.error(e);
+      } finally {
+        btn.classList.remove('spin');
+      }
+    }
+
+    function applyTheme(t) { document.documentElement.dataset.theme = t; }
+    applyTheme(store.get('theme', matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'));
+    $('#theme').addEventListener('click', () => {
+      const t = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+      applyTheme(t); store.set('theme', t);
+    });
+    $('#reload').addEventListener('click', load);
+    load();
+  </script>
+</body>
+</html>
