@@ -193,7 +193,7 @@
       .wk .side { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
     }
     /* 去哪玩：照片卡 */
-    .pgrid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+    .pgrid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; }
     .pcard { display: flex; flex-direction: column; overflow: hidden; min-width: 0; transition: transform .15s; }
     .pcard:hover { transform: translateY(-2px); }
     .pcard .ph { position: relative; aspect-ratio: 4 / 3; background: var(--panel-2) center / cover no-repeat; transition: background-image .2s; }
@@ -204,16 +204,95 @@
     .pcard .np { position: absolute; left: 10px; bottom: 9px; z-index: 1; display: flex; gap: 4px; }
     .pcard .np i { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,.5); }
     .pcard .np i.on { background: #fff; }
-    .pcard .pb { padding: 11px 13px 13px; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-    .pcard .pn { font-weight: 700; font-size: 14.5px; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-    .pcard .pm { font-size: 12.5px; color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .pcard .pb { padding: 9px 11px 11px; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+    .pcard .pn { font-weight: 700; font-size: 13.5px; line-height: 1.35; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .pcard .pm { font-size: 12px; color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .pcard .cat, .pcard .rk { font-size: 11px; padding: 1px 6px; }
+    .see-all { grid-column: 1 / -1; display: block; text-align: center; padding: 11px; border-radius: 12px; font-weight: 600; font-size: 13.5px; color: var(--text-2); }
+    .see-all:hover { color: var(--text-1); }
+    /* 列表页（#/list…）：顶部返回 + 筛选 + 全部地点 */
+    .lv-head { display: flex; align-items: center; gap: 14px; margin: 4px 0 16px; flex-wrap: wrap; }
+    .lv-back { padding: 7px 14px; border-radius: 10px; border: 1px solid var(--line); font-weight: 600; font-size: 13.5px; color: var(--text-2); }
+    .lv-back:hover { color: var(--text-1); border-color: var(--line-2); }
+    .lv-head h2 { font-size: 22px; font-weight: 800; letter-spacing: -0.02em; }
+    .lv-head small { color: var(--text-3); font-size: 13px; }
     .pcard .pt { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 2px; }
     .rec-why { margin: -4px 0 12px; font-size: 13px; color: var(--text-2); }
-    @media (max-width: 1080px) { .pgrid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+    /* 一行天气条 */
+    .hero h1 { font-size: 28px; }
+    .wx { display: flex; align-items: center; gap: 18px; padding: 10px 16px; margin-bottom: 6px; flex-wrap: wrap; }
+    .wx-d { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--text-2); }
+    .wx-d b { color: var(--text-1); font-weight: 700; }
+    .wx-d .ic { font-size: 18px; } .wx-d .pop { color: var(--rain); }
+    .wx-v { font-size: 14px; font-weight: 600; margin-left: auto; }
+    .wx-btn { font-size: 13px; color: var(--text-2); padding: 5px 10px; border-radius: 8px; border: 1px solid var(--line); }
+    .wx-btn:hover { color: var(--text-1); border-color: var(--line-2); }
+    .wx-more { margin-top: 12px; }
+    .bar2 { display: flex; align-items: center; gap: 12px; justify-content: space-between; flex-wrap: wrap; margin-bottom: 12px; }
+    .bar2 .chips { margin-bottom: 0; }
+    .seg { display: inline-flex; background: var(--hover); border: 1px solid var(--line); border-radius: 10px; padding: 3px; }
+    .seg button { padding: 5px 12px; border-radius: 7px; font-size: 13px; color: var(--text-2); font-weight: 600; white-space: nowrap; }
+    .seg button.active { background: var(--panel); color: var(--text-1); box-shadow: 0 0 0 1px var(--line-2); }
+    .seg .n { opacity: .55; margin-left: 4px; }
+    /* 收费 / 免费标签、榜单徽章 */
+    .fee { display: inline-flex; padding: 1px 7px; border-radius: 6px; font-size: 11.5px; font-weight: 700; white-space: nowrap; }
+    .fee-free { color: var(--good); background: color-mix(in srgb, var(--good) 14%, transparent); }
+    .fee-paid { color: var(--accent-2); background: color-mix(in srgb, var(--accent-2) 14%, transparent); }
+    .fee-unk { color: var(--text-3); background: var(--hover); }
+    .pcard .rk { position: absolute; right: 10px; top: 10px; z-index: 1; font-size: 11.5px; font-weight: 700; padding: 2px 8px; border-radius: 6px; background: rgba(251,191,36,.92); color: #3b2500; }
+    /* 吃什么：榜单式两列 */
+    .rlist { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .rrow { display: grid; grid-template-columns: 34px 112px minmax(0, 1fr); gap: 14px; align-items: center; padding: 12px 14px; transition: transform .15s; }
+    .rrow:hover { transform: translateY(-2px); }
+    .rn { font-size: 22px; font-weight: 800; color: var(--text-3); text-align: center; }
+    .rrow:nth-child(-n+3) .rn { color: var(--accent-2); }
+    .rph { width: 112px; height: 84px; border-radius: 10px; background: center / cover no-repeat var(--panel-2); }
+    .rb { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+    .rs { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 13px; color: var(--text-2); }
+    .rs b { color: var(--accent-2); }
+    .rbadge { font-size: 11.5px; font-weight: 700; padding: 1px 7px; border-radius: 6px; background: rgba(251,191,36,.18); color: var(--accent-2); }
+    /* 看展：横向滑动 */
+    .hscroll { display: grid; grid-auto-flow: column; grid-auto-columns: 220px; gap: 14px; overflow-x: auto; padding-bottom: 8px; scroll-snap-type: x mandatory; }
+    .hscroll > * { scroll-snap-align: start; }
+    .hscroll .poster { aspect-ratio: 3 / 4; }
+    @media (max-width: 760px) {
+      .wx { gap: 10px; } .wx-v { margin-left: 0; width: 100%; order: 3; } .wx-btn { margin-left: auto; }
+      .rlist { grid-template-columns: 1fr; }
+      .rrow { grid-template-columns: 26px 84px minmax(0, 1fr); gap: 10px; } .rph { width: 84px; height: 66px; } .rn { font-size: 18px; }
+      .hscroll { grid-auto-columns: 160px; }
+    }
+    /* 地点详情弹窗 */
+    .modal { position: fixed; inset: 0; z-index: 60; background: rgba(0,0,0,.62); display: grid; place-items: center; padding: 24px; }
+    .modal[hidden] { display: none; }
+    .sheet { width: min(760px, 100%); max-height: calc(100vh - 48px); overflow: auto; background: var(--panel); border-radius: 18px; box-shadow: 0 30px 80px rgba(0,0,0,.5); position: relative; }
+    .sheet .x { position: absolute; top: 12px; right: 12px; z-index: 2; width: 34px; height: 34px; border-radius: 50%; background: rgba(0,0,0,.55); color: #fff; font-size: 18px; display: grid; place-items: center; }
+    .gal { position: relative; aspect-ratio: 16 / 9; max-height: 44vh; width: 100%; background: var(--panel-2) center / cover no-repeat; }
+    .gal .nav { position: absolute; top: 50%; transform: translateY(-50%); width: 36px; height: 36px; border-radius: 50%; background: rgba(0,0,0,.45); color: #fff; font-size: 20px; display: grid; place-items: center; }
+    .gal .prev { left: 12px; } .gal .next { right: 12px; }
+    .thumbs { display: flex; gap: 8px; padding: 10px 20px 0; }
+    .thumbs i { width: 72px; height: 50px; border-radius: 8px; background: center / cover no-repeat var(--panel-2); cursor: pointer; opacity: .55; border: 2px solid transparent; }
+    .thumbs i.on { opacity: 1; border-color: var(--accent); }
+    .sbody { padding: 16px 22px 22px; display: flex; flex-direction: column; gap: 12px; }
+    .sbody h3 { font-size: 21px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.3; }
+    .score { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; font-size: 14px; color: var(--text-2); }
+    .score b { font-size: 20px; color: var(--accent-2); }
+    .info { display: flex; flex-direction: column; gap: 8px; font-size: 14px; }
+    .info div { display: grid; grid-template-columns: 24px 1fr; gap: 6px; }
+    .info a { color: var(--accent); }
+    .wtip { padding: 10px 12px; border-radius: 10px; font-size: 13.5px; background: var(--panel-2); line-height: 1.6; }
+    .acts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .acts a { padding: 11px 12px; border-radius: 11px; text-align: center; font-weight: 600; font-size: 14px; background: var(--panel-2); border: 1px solid var(--line); }
+    .acts a:hover { border-color: var(--line-2); }
+    .acts a.primary { background: var(--text-1); color: var(--bg); border-color: var(--text-1); }
+    @media (max-width: 760px) {
+      .modal { padding: 0; place-items: end center; }
+      .sheet { max-height: 92vh; border-radius: 18px 18px 0 0; }
+    }
+    @media (max-width: 1200px) { .pgrid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 
     @media (max-width: 760px) {
       .pgrid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-      .pcard .pn { font-size: 13.5px; }
+      .pcard .pn { font-size: 13px; }
       .topbar-inner { padding: 10px 16px; gap: 10px; }
       .nav, .updated .txt { display: none; }
       .wrap { padding: 16px 16px 48px; }
@@ -236,7 +315,7 @@
     <div class="topbar-inner">
       <div class="logo"><div class="logo-mark">🌤</div>杭州周末指南</div>
       <nav class="nav">
-        <a href="#places">去哪玩</a><a href="#weather">天气</a><a href="#exhibitions">展览</a><a href="#free">免费活动</a><a href="#fun">演出玩乐</a>
+        <a href="#places">玩什么</a><a href="#food">吃什么</a><a href="#exhibitions">看展</a><a href="#fun">活动</a>
       </nav>
       <div class="spacer"></div>
       <div class="updated"><span class="live-dot" id="dot"></span><span class="txt" id="updated">加载中…</span></div>
@@ -253,37 +332,41 @@
   </header>
 
   <main class="wrap">
+    <div id="listview" hidden></div>
+    <div id="home">
     <section class="hero" id="weather">
-      <div>
-        <h1>杭州 · <em id="wk-title">本周末</em></h1>
-        <p id="wk-sub"></p>
-        <div class="verdict" id="verdict"></div>
-      </div>
+      <h1>杭州 · <em id="wk-title">本周末</em>去哪</h1>
+      <p id="wk-sub"></p>
     </section>
     <div id="alarms"></div>
-    <div class="wk">
-      <div class="panel day" id="day0"></div>
-      <div class="panel day" id="day1"></div>
-      <aside class="panel side" id="side"></aside>
+    <!-- 天气只占一行；详细（逐小时、10 天、生活指数）默认收起 -->
+    <div class="panel wx" id="wx-strip"></div>
+    <div class="wx-more" id="wx-more" hidden>
+      <div class="wk">
+        <div class="panel day" id="day0"></div>
+        <div class="panel day" id="day1"></div>
+        <aside class="panel side" id="side"></aside>
+      </div>
+      <div class="panel days10" id="days10"></div>
     </div>
-    <div class="panel days10" id="days10"></div>
 
-    <h2 class="section-title" id="places">🧭 这周末去哪 <small id="pl-sub"></small></h2>
+    <h2 class="section-title" id="places">🧭 玩什么 <small id="pl-sub"></small></h2>
     <div class="chips" id="pl-district"></div>
-    <div class="chips" id="pl-cats"></div>
+    <div class="bar2"><div class="chips" id="pl-cats"></div><div class="seg" id="pl-fee"></div></div>
     <div class="pgrid" id="pl-grid"></div>
 
-    <h2 class="section-title" id="exhibitions">🖼 展览 <small id="exh-sub"></small></h2>
+    <h2 class="section-title" id="food">🍜 吃什么 <small id="fd-sub"></small></h2>
+    <div class="chips" id="fd-tabs"></div>
+    <div class="rlist" id="fd-list"></div>
+
+    <h2 class="section-title" id="exhibitions">🖼 看展 <small id="exh-sub"></small></h2>
     <div class="chips" id="exh-filter"></div>
-    <div class="grid" id="exh-grid"></div>
+    <div class="hscroll" id="exh-grid"></div>
 
-    <h2 class="section-title" id="free">🎟 免费活动 · 讲座 <small>浙江图书馆、杭州图书馆、豆瓣同城标注免费的活动</small></h2>
-    <div class="chips" id="free-filter"></div>
-    <div class="panel list" id="free-list"></div>
-
-    <h2 class="section-title" id="fun">🎭 演出 & 玩乐 <small>豆瓣同城本周末活动 + 秀动新开票演出</small></h2>
-    <div class="chips" id="fun-filter"></div>
-    <div class="panel list" id="fun-list"></div>
+    <h2 class="section-title" id="fun">🎟 活动 <small>免费讲座、展览、读书会，以及演出和玩乐</small></h2>
+    <div class="bar2"><div class="seg" id="ev-tab"><button class="active" data-t="free">免费活动</button><button data-t="fun">演出玩乐</button></div></div>
+    <div id="ev-free"><div class="chips" id="free-filter"></div><div class="panel list" id="free-list"></div></div>
+    <div id="ev-fun" hidden><div class="chips" id="fun-filter"></div><div class="panel list" id="fun-list"></div></div>
 
     <h2 class="section-title">📡 数据来源</h2>
     <div class="panel sources" id="sources"></div>
@@ -291,6 +374,8 @@
       天气每 3 小时自动抓取一次：数值来自 Open-Meteo，中文天气描述、生活指数、空气质量预报来自中国天气网。展览以各馆官网为准，豆瓣同城、秀动为第三方发布，时间票价以活动页为准。<br>
       浙江省博物馆、浙江自然博物院等需提前在官方小程序预约。杭州限行为工作日早晚高峰错峰限行，周末和法定节假日不限行。
     </p>
+    </div>
+    <div class="modal" id="pl-modal" hidden><div class="sheet" id="pl-sheet" role="dialog" aria-modal="true"></div></div>
   </main>
 
   <script>
@@ -391,15 +476,21 @@
       const inWeekend = today === sat || today === sun;
       $('#wk-title').textContent = inWeekend ? '这个周末' : '本周末';
       $('#wk-sub').textContent = `${md(sat)} 周六 – ${md(sun)} 周日` + (inWeekend ? '' : ` · 还有 ${dayDiff(today, sat)} 天`);
+      addHol();
       const s = byDate[sat], u = byDate[sun];
       const as = advise(s), au = advise(u);
       let v;
-      if (!s && !u) v = '周末预报还没出来。';
-      else if (as.indoor && au.indoor) v = '☔ 两天都有雨，安排室内：下面的展览和讲座正好用得上。';
-      else if (as.indoor && !au.indoor) v = '周六有雨、周日转好：周六逛展，周日出门。';
-      else if (!as.indoor && au.indoor) v = '周六天气好、周日有雨：户外放周六，周日留给室内。';
-      else v = '🌿 两天都适合出门。';
-      $('#verdict').textContent = v;
+      if (!s && !u) v = '周末预报还没出来';
+      else if (as.indoor && au.indoor) v = '☔ 两天有雨，推荐偏室内';
+      else if (as.indoor && !au.indoor) v = '周六有雨、周日转好，户外放周日';
+      else if (!as.indoor && au.indoor) v = '周六天气好、周日有雨，户外放周六';
+      else v = '🌿 两天都适合出门';
+      // 一行天气条：两天的温度 / 天气 / 降雨概率 + 结论，「详细」展开原来的大卡片
+      const cell = (x, n) => x ? `<div class="wx-d"><b>${n}</b><span class="ic">${icon(x.text, x.code)}</span><span class="num">${x.tmin}~${x.tmax}°</span><span>${esc(x.text || WMO(x.code))}</span><span class="pop num">${x.pop ?? 0}%</span></div>` : '';
+      const open = !$('#wx-more').hidden;
+      $('#wx-strip').innerHTML = `${cell(s, '周六')}${cell(u, '周日')}<div class="wx-v">${v}</div>
+        <button class="wx-btn" id="wx-toggle">${open ? '收起' : '详细'} ▾</button>`;
+      $('#wx-toggle').onclick = () => { $('#wx-more').hidden = !$('#wx-more').hidden; renderWeather(DATA); };
       renderDay($('#day0'), s, data.hourly?.[sat], '周六');
       renderDay($('#day1'), u, data.hourly?.[sun], '周日');
       renderSide(data);
@@ -556,17 +647,19 @@
 
     // ── 去哪玩：高德 POI，按区 × 类别，「推荐」按周末天气混排 ──
     let PLACES = null;
-    const plState = { district: store.get('district', null), cat: store.get('plCat', 'rec'), more: false };
+    const plState = { district: store.get('district', null), cat: store.get('plCat', 'rec'), fee: store.get('plFee', 'all'), more: false };
     const CAT_ICON = { rec: '✨', camp: '⛺', outdoor: '🌲', kids: '🧒', indoor: '☔', food: '🍜' };
+    const FEE = { free: ['免费', 'fee-free'], paid: ['收费', 'fee-paid'], '': ['门票待确认', 'fee-unk'] };
     async function loadPlaces() {
       try {
         PLACES = await fetch('places.json', { cache: 'no-cache' }).then(r => r.json());
-        renderPlaces();
+        renderPlaces(); renderFood();
+        route();
         // 地点推荐的抓取状态并入底部「数据来源」
         const st = PLACES.status || {};
         $('#sources').insertAdjacentHTML('beforeend', `<div class="src" title="${esc(st.error || '')}"><i class="${st.ok ? '' : 'stale'}"></i>高德地点推荐
           <span>${st.ok ? `${Object.keys(PLACES.districts).length} 个区` : esc(st.error || '异常') + '，沿用旧数据'}</span></div>`);
-      } catch (e) { $('#pl-grid').innerHTML = '<div class="panel empty" style="grid-column:1/-1">地点数据加载失败</div>'; }
+      } catch (e) { console.error(e); $('#pl-grid').innerHTML = '<div class="panel empty" style="grid-column:1/-1">地点数据加载失败</div>'; }
     }
     function weekendRainy() {
       if (!DATA) return false;
@@ -574,29 +667,45 @@
       const r = DATA.weekend.map(d => advise(by[d]).indoor);
       return r[0] && r[1];
     }
-    function recMix(cats) {
-      // 两天都有雨：室内 / 遛娃 / 吃喝；否则：露营 / 户外 / 遛娃 / 吃喝。按类别轮流取，避免一屏同一类
-      const order = weekendRainy() ? ['indoor', 'kids', 'food'] : ['camp', 'outdoor', 'kids', 'food'];
-      const lists = order.map(c => (cats[c] || []).slice());
-      const out = [];
-      while (out.length < 48 && lists.some(l => l.length)) lists.forEach(l => l.length && out.push(l.shift()));
+    // 免费的占 2/3：免费、免费、收费 / 待确认 轮着排，某一边用完就用另一边补
+    function freeFirst(list) {
+      const free = list.filter(x => x.fee === 'free'), rest = list.filter(x => x.fee !== 'free'), out = [];
+      while (free.length || rest.length) { out.push(...free.splice(0, 2)); if (rest.length) out.push(rest.shift()); }
       return out;
     }
+    function recMix(cats) {
+      // 两天都有雨：室内 / 遛娃；否则：露营 / 户外 / 遛娃。类别轮流取，避免一屏同一类
+      const order = weekendRainy() ? ['indoor', 'kids', 'outdoor'] : ['camp', 'outdoor', 'kids'];
+      const lists = order.map(c => freeFirst(cats[c] || []));
+      const out = [];
+      while (out.length < 60 && lists.some(l => l.length)) lists.forEach(l => l.length && out.push(l.shift()));
+      return out;
+    }
+    // 上了「状元榜·景点」的地点挂徽章
+    function scenicRank(id) { return (PLACES.rankings?.lists?.scenic || []).find(x => x.id === id); }
+    function feeBadge(p) {
+      const [t, c] = FEE[p.fee || ''] || FEE[''];
+      return p.fee === 'paid' && p.cost ? `<span class="fee ${c}">收费 · 人均 ¥${Math.round(p.cost)}</span>` : `<span class="fee ${c}">${t}</span>`;
+    }
     function placeCard(p) {
-      const nav = `https://uri.amap.com/marker?position=${p.lng},${p.lat}&name=${encodeURIComponent(p.name)}&src=hz-weekend&callnative=1`;
       const catName = (PLACES.cats.find(c => c.id === p.cat) || {}).name || '';
       const meta = [p.area, p.type].filter(Boolean).join(' · ');
-      return `<a class="panel pcard" href="${esc(nav)}" target="_blank" rel="noopener" title="在高德地图打开">
+      const sr = scenicRank(p.id);
+      return `<a class="panel pcard" href="#place=${esc(p.id)}" data-pid="${esc(p.id)}" title="查看详情">
         <div class="ph" data-photos="${esc(JSON.stringify(p.photos))}" style="background-image:url('${esc(p.photos[0]).replace(/'/g, '%27')}')">
           <span class="cat">${CAT_ICON[p.cat] || ''} ${esc(catName)}</span>
+          ${sr ? `<span class="rk">🏆 景点榜 #${sr.rank}</span>` : ''}
           ${p.photos.length > 1 ? `<span class="np">${p.photos.map((_, i) => `<i class="${i ? '' : 'on'}"></i>`).join('')}</span>` : ''}
-          ${p.rating ? `<span class="rt">★ ${p.rating.toFixed(1)}${p.cost ? `<small>人均 ¥${Math.round(p.cost)}</small>` : ''}</span>` : p.cost ? `<span class="rt">人均 ¥${Math.round(p.cost)}</span>` : ''}
+          ${p.rating ? `<span class="rt">★ ${p.rating.toFixed(1)}</span>` : ''}
         </div>
         <div class="pb"><div class="pn">${esc(p.name)}</div>
           <div class="pm">${esc(meta)}</div>
-          ${p.open ? `<div class="pm">🕘 ${esc(p.open)}</div>` : p.addr ? `<div class="pm">📍 ${esc(p.addr)}</div>` : ''}
-          ${p.tags?.length ? `<div class="pt">${p.tags.slice(0, 3).map(t => `<span class="badge">${esc(t)}</span>`).join('')}</div>` : ''}
+          <div class="pt">${feeBadge(p)}${(p.tags || []).slice(0, 2).map(t => `<span class="badge">${esc(t)}</span>`).join('')}</div>
         </div></a>`;
+    }
+    function placeList(code, cat) {
+      const cats = PLACES.districts[code]?.cats || {};
+      return cat === 'rec' ? recMix(cats) : freeFirst(cats[cat] || []);
     }
     function renderPlaces() {
       if (!PLACES) return;
@@ -604,17 +713,65 @@
       if (!PLACES.districts[plState.district]) plState.district = PLACES.default in PLACES.districts ? PLACES.default : order[0];
       const D = PLACES.districts[plState.district], cats = D.cats;
       $('#pl-district').innerHTML = order.map(c => `<button class="chip ${c === plState.district ? 'active' : ''}" data-d="${c}">${esc(PLACES.districts[c].name)}${c === PLACES.default ? '<span class="n">默认</span>' : ''}</button>`).join('');
-      const tabs = [['rec', '推荐'], ...PLACES.cats.map(c => [c.id, c.name])];
-      $('#pl-cats').innerHTML = tabs.map(([id, n]) => `<button class="chip ${plState.cat === id ? 'active' : ''}" data-c="${id}">${CAT_ICON[id] || ''} ${esc(n)}${id === 'rec' ? '' : `<span class="n">${(cats[id] || []).length}</span>`}</button>`).join('');
-      const list = plState.cat === 'rec' ? recMix(cats) : (cats[plState.cat] || []);
+      const tabs = [['rec', '推荐'], ...PLACES.cats.filter(c => c.id !== 'food').map(c => [c.id, c.name])];   // 吃喝单独成区块
+      if (!tabs.some(t => t[0] === plState.cat)) plState.cat = 'rec';
+      $('#pl-cats').innerHTML = tabs.map(([id, n]) => `<button class="chip ${plState.cat === id ? 'active' : ''}" data-c="${id}">${CAT_ICON[id] || ''} ${esc(n)}${id === 'rec' ? '' : `<span class="n">${(cats[id] || []).filter(x => x.fee === 'free').length} 免费</span>`}</button>`).join('');
+      let list = placeList(plState.district, plState.cat);
+      $('#pl-fee').innerHTML = [['all', '全部'], ['free', '只看免费'], ['paid', '收费']].map(([k, n]) =>
+        `<button class="${plState.fee === k ? 'active' : ''}" data-f="${k}">${n}<span class="n num">${k === 'all' ? list.length : list.filter(x => x.fee === k).length}</span></button>`).join('');
+      if (plState.fee !== 'all') list = list.filter(x => x.fee === plState.fee);
       const shown = plState.more ? list : list.slice(0, 12);
       const rainy = weekendRainy();
-      $('#pl-sub').textContent = `${D.name}区 · 高德地图评分与照片 · 点卡片直接导航`;
-      $('#pl-grid').innerHTML = (plState.cat === 'rec' ? `<div class="rec-why" style="grid-column:1/-1">${rainy ? '☔ 这周末两天都有雨，优先推荐室内遛娃、博物馆和吃喝' : '🌿 周末天气还行，优先推荐露营、户外和遛娃'}</div>` : '')
+      const nFree = shown.filter(x => x.fee === 'free').length;
+      $('#pl-sub').textContent = `${D.name}区 · 免费的优先 · 点卡片看详情`;
+      $('#pl-grid').innerHTML = (plState.cat === 'rec' ? `<div class="rec-why" style="grid-column:1/-1">${rainy ? '☔ 周末两天有雨，优先室内遛娃、博物馆' : '🌿 周末天气还行，优先露营、户外和遛娃'} · 这一屏 ${nFree} 个免费</div>` : '')
         + (shown.length ? shown.map(placeCard).join('') : '<div class="panel empty" style="grid-column:1/-1">这个区暂时没有这类地点</div>')
-        + (list.length > shown.length ? `<button class="panel more" style="grid-column:1/-1;border-radius:12px" data-more="1">展开全部 ${list.length} 个</button>` : '');
+        + (list.length > shown.length ? `<a class="panel see-all" href="${listHash({ k: 'places', d: plState.district, c: plState.cat, f: plState.fee })}">查看全部 ${list.length} 个 →</a>` : '');
     }
-    $('#pl-district').addEventListener('click', e => { const b = e.target.closest('[data-d]'); if (!b) return; plState.district = b.dataset.d; plState.more = false; store.set('district', plState.district); renderPlaces(); });
+    $('#pl-fee').addEventListener('click', e => { const b = e.target.closest('[data-f]'); if (!b) return; plState.fee = b.dataset.f; plState.more = false; store.set('plFee', plState.fee); renderPlaces(); });
+
+    // ── 吃什么：扫街榜（本区上榜 → 全杭州榜单）在前，高德评分补齐 ──
+    const fdState = { tab: store.get('fdTab', 'rank'), more: false };
+    function foodList(tab, code = plState.district) {
+      const R = PLACES.rankings?.lists || {};
+      const tag = (x, kind) => ({ ...x, cat: 'food', fee: 'paid', _badge: kind === 'food' ? `🏆 扫街榜状元榜 #${x.rank}` : '💎 极致甄选', _score: x.score });
+      const ranked = [...(R.food || []).map(x => tag(x, 'food')), ...(R['select-food'] || []).map(x => tag(x, 'select'))].filter(x => x.photos?.length);
+      const local = ranked.filter(x => x.adcode === code), city = ranked.filter(x => x.adcode !== code);
+      const amap = [...(PLACES.districts[code]?.cats.food || [])].sort((a, b) => (b.rating || 0) - (a.rating || 0));
+      if (tab === 'rank') return [...local, ...city];
+      if (tab === 'local') return [...local, ...amap.filter(x => !local.some(y => y.id === x.id))];
+      if (tab === 'cheap') return amap.filter(x => x.cost && x.cost <= 60);
+      if (tab === 'cafe') return amap.filter(x => /咖啡|茶/.test(x.name + x.type));
+      return amap;
+    }
+    function foodRow(p, i) {
+      const meta = [p.area, p.keytag || p.type].filter(Boolean).join(' · ');
+      return `<a class="panel rrow" href="#place=${esc(p.id)}" data-pid="${esc(p.id)}">
+        <span class="rn num">${String(i + 1).padStart(2, '0')}</span>
+        <i class="rph" style="background-image:url('${esc(p.photos[0]).replace(/'/g, '%27')}')"></i>
+        <div class="rb"><div class="pn">${esc(p.name)}</div>
+          <div class="rs">${p._badge ? `<span class="rbadge">${esc(p._badge)}</span>` : ''}${p._score ? `<b>综合分 ${p._score.toFixed(2)}</b>` : p.rating ? `<b>★ ${p.rating.toFixed(1)}</b>` : ''}${p.cost ? `<span>人均 ¥${Math.round(p.cost)}</span>` : ''}</div>
+          <div class="pm">${esc(meta)}</div>
+          ${(p.dishes?.length ? p.dishes : p.tags || []).length ? `<div class="pt">${(p.dishes?.length ? p.dishes : p.tags).slice(0, 3).map(t => `<span class="badge">${esc(t)}</span>`).join('')}</div>` : ''}
+        </div></a>`;
+    }
+    function renderFood() {
+      if (!PLACES) return;
+      const D = PLACES.districts[plState.district];
+      const tabs = [['rank', '🏆 扫街榜'], ['local', `📍 ${D?.name || ''}高分`], ['cheap', '💰 人均 ≤ ¥60'], ['cafe', '☕ 咖啡茶饮']];
+      $('#fd-tabs').innerHTML = tabs.map(([k, n]) => `<button class="chip ${fdState.tab === k ? 'active' : ''}" data-t="${k}">${esc(n)}<span class="n">${foodList(k).length}</span></button>`).join('');
+      const list = foodList(fdState.tab), shown = fdState.more ? list : list.slice(0, 10);
+      const title = PLACES.rankings?.title?.food || '';
+      $('#fd-sub').textContent = fdState.tab === 'rank' ? `${title}（高德扫街榜网页版）· ${D?.name || ''}区上榜的排前面` : `${D?.name || ''}区 · 高德评分`;
+      $('#fd-list').innerHTML = (shown.length ? shown.map(foodRow).join('') : '<div class="panel empty" style="grid-column:1/-1">暂无</div>')
+        + (list.length > shown.length ? `<a class="panel see-all" href="${listHash({ k: 'food', d: plState.district, t: fdState.tab })}">查看全部 ${list.length} 家 →</a>` : '');
+    }
+    $('#fd-tabs').addEventListener('click', e => { const b = e.target.closest('[data-t]'); if (!b) return; fdState.tab = b.dataset.t; fdState.more = false; store.set('fdTab', fdState.tab); renderFood(); });
+    $('#fd-list').addEventListener('click', e => {
+      if (e.target.closest('[data-more]')) { e.preventDefault(); fdState.more = true; return renderFood(); }
+      const a = e.target.closest('[data-pid]'); if (a) { e.preventDefault(); openPlace(a.dataset.pid); }
+    });
+    $('#pl-district').addEventListener('click', e => { const b = e.target.closest('[data-d]'); if (!b) return; plState.district = b.dataset.d; plState.more = false; store.set('district', plState.district); renderPlaces(); renderFood(); });
     $('#pl-cats').addEventListener('click', e => { const b = e.target.closest('[data-c]'); if (!b) return; plState.cat = b.dataset.c; plState.more = false; store.set('plCat', plState.cat); renderPlaces(); });
     $('#pl-grid').addEventListener('click', e => { if (e.target.closest('[data-more]')) { e.preventDefault(); plState.more = true; renderPlaces(); } });
     // 鼠标在照片上左右移动切换同一地点的 3 张照片
@@ -627,15 +784,164 @@
       ph.querySelectorAll('.np i').forEach((d, k) => d.classList.toggle('on', k === i));
     });
 
+    // ── 地点详情：页面内弹窗，网址带 #place=ID 可分享 ──
+    const isMobile = matchMedia('(max-width: 760px)').matches || /iPhone|Android/i.test(navigator.userAgent);
+    function findPlace(id) {
+      for (const d of Object.values(PLACES?.districts || {})) for (const l of Object.values(d.cats)) { const p = l.find(x => x.id === id); if (p) return p; }
+      for (const l of Object.values(PLACES?.rankings?.lists || {})) { const p = l.find(x => x.id === id); if (p) return { cat: 'food', fee: 'paid', type: '', ...p }; }
+      return null;
+    }
+    function weekendTip(cat) {
+      if (!DATA) return '';
+      const by = Object.fromEntries((DATA.daily || []).map(x => [x.date, x]));
+      const days = DATA.weekend.map((d, i) => ({ n: i ? '周日' : '周六', x: by[d] })).filter(o => o.x);
+      if (!days.length) return '';
+      const line = days.map(o => `${o.n} ${icon(o.x.text, o.x.code)} ${esc(o.x.text || WMO(o.x.code))} ${o.x.tmin}~${o.x.tmax}°`).join(' · ');
+      const rain = days.filter(o => advise(o.x).indoor).map(o => o.n);
+      const outdoor = ['camp', 'outdoor'].includes(cat);
+      let tip;
+      if (outdoor) tip = rain.length === days.length ? '两天都有雨：露营选有雨棚的营位、带防潮垫，户外山路湿滑，雨大建议改期' : rain.length ? `${rain[0]}有雨，建议安排在另一天去` : '天气合适，记得防晒、带足水';
+      else if (cat === 'kids') tip = rain.length ? '有雨的话优先室内项目，户外农场、乐园记得带雨具和备用衣服' : '天气不错，户外区可以玩个痛快';
+      else tip = rain.length ? '下雨天去正合适' : '周末人多，热门时段建议提前预约 / 排号';
+      return `<div class="wtip">${line}<br>💡 ${tip}</div>`;
+    }
+    let galIdx = 0, CUR = null;
+    function renderSheet() {
+      const p = CUR, ph = p.photos || [];
+      const catName = (PLACES.cats.find(c => c.id === p.cat) || {}).name || '';
+      const q = encodeURIComponent(p.name);
+      const detail = isMobile ? `https://m.amap.com/detail/index/poiid=${p.id}` : `https://www.amap.com/place/${p.id}`;
+      const nav = `https://uri.amap.com/marker?position=${p.lng},${p.lat}&name=${q}&src=hz-weekend&callnative=1`;
+      // 推荐标签和类型标签相同时（高德常见）不重复显示
+      const tags = [...new Set([p.keytag, ...(p.rectag ? p.rectag.split(',').filter(t => t !== p.keytag).map(t => '推荐：' + t) : []), ...(p.tags || [])].filter(Boolean))];
+      $('#pl-sheet').innerHTML = `<button class="x" data-close aria-label="关闭">✕</button>
+        <div class="gal" style="background-image:url('${esc(ph[galIdx] || '').replace(/'/g, '%27')}')">
+          ${ph.length > 1 ? '<button class="nav prev" data-g="-1" aria-label="上一张">‹</button><button class="nav next" data-g="1" aria-label="下一张">›</button>' : ''}</div>
+        ${ph.length > 1 ? `<div class="thumbs">${ph.map((u, i) => `<i class="${i === galIdx ? 'on' : ''}" data-gi="${i}" style="background-image:url('${esc(u).replace(/'/g, '%27')}')"></i>`).join('')}</div>` : ''}
+        <div class="sbody">
+          <h3>${esc(p.name)}</h3>
+          <div class="score">${p.score ? `<b>综合分 ${p.score.toFixed(2)}</b>` : p.rating ? `<b>★ ${p.rating.toFixed(1)}</b>` : ''}${feeBadge(p)}<span>${CAT_ICON[p.cat] || ''} ${esc(catName || '吃喝')}${p.type ? ' · ' + esc(p.type) : ''}</span></div>
+          ${tags.length ? `<div class="pt">${tags.slice(0, 6).map(t => `<span class="badge">${esc(t)}</span>`).join('')}</div>` : ''}
+          <div class="info">
+            <div><span>📍</span><span>${esc([p.area, p.addr].filter(Boolean).join(' '))}</span></div>
+            ${p.week || p.open ? `<div><span>🕘</span><span>${esc(p.week || p.open)}</span></div>` : ''}
+            ${p.tel ? `<div><span>📞</span><span><a href="tel:${esc(p.tel)}">${esc(p.tel)}</a></span></div>` : ''}
+          </div>
+          ${weekendTip(p.cat)}
+          <div class="acts">
+            <a class="primary" href="${esc(detail)}" target="_blank" rel="noopener">高德详情与评价</a>
+            <a href="${esc(nav)}" target="_blank" rel="noopener">导航过去</a>
+            <a href="https://www.xiaohongshu.com/search_result?keyword=${q}" target="_blank" rel="noopener">小红书攻略</a>
+            <a href="https://www.dianping.com/search/keyword/3/0_${q}" target="_blank" rel="noopener">大众点评</a>
+          </div>
+        </div>`;
+    }
+    // ── 路由：#/list?…= 列表页；place=ID 可以挂在首页（#place=ID）或列表页（…&place=ID）后面 ──
+    function listHash(o) { return '#/list?' + new URLSearchParams(Object.entries(o).filter(([, v]) => v)).toString(); }
+    function parseHash() {
+      const h = location.hash, isList = h.startsWith('#/list');
+      const q = new URLSearchParams(isList ? h.slice(h.indexOf('?') + 1) : h.slice(1));
+      return { isList, q, place: q.get('place') };
+    }
+    function hashWithout(key) {
+      const { isList, q } = parseHash(); q.delete(key);
+      return isList ? '#/list?' + q.toString() : (q.toString() ? '#' + q.toString() : location.pathname + location.search);
+    }
+    function openPlace(id, push = true) {
+      const p = findPlace(id); if (!p) return;
+      CUR = p; galIdx = 0; renderSheet();
+      $('#pl-modal').hidden = false; document.body.style.overflow = 'hidden';
+      if (push && parseHash().place !== id) {
+        const { isList } = parseHash();
+        history.pushState(null, '', isList ? hashWithout('place') + '&place=' + id : '#place=' + id);
+      }
+    }
+    function closePlace(back = true) {
+      if ($('#pl-modal').hidden) return;
+      $('#pl-modal').hidden = true; document.body.style.overflow = '';
+      if (back && parseHash().place) history.back();
+    }
+    function openFromHash() { const id = parseHash().place; if (id) openPlace(id, false); }
+    let homeScroll = 0, wasList = false;
+    function route() {
+      if (!PLACES) return;
+      const { isList, q, place } = parseHash();
+      if (isList !== wasList) {
+        if (isList) homeScroll = scrollY;
+        $('#home').hidden = isList; $('#listview').hidden = !isList;
+        if (isList) scrollTo(0, 0); else requestAnimationFrame(() => scrollTo(0, homeScroll));
+        wasList = isList;
+      }
+      if (isList) renderListView(q);
+      if (place) openPlace(place, false); else closePlace(false);
+    }
+    // 列表页：带着首页的区 / 类别 / 免费筛选进来，在这里还能继续切换（用 replaceState，不堆历史）
+    function renderListView(q) {
+      const k = q.get('k') || 'places', code = PLACES.districts[q.get('d')] ? q.get('d') : plState.district;
+      const D = PLACES.districts[code], set = o => { const n = new URLSearchParams(q); Object.entries(o).forEach(([a, v]) => n.set(a, v)); n.delete('place'); history.replaceState(null, '', '#/list?' + n); renderListView(n); };
+      const order = PLACES.districts_order.filter(c => PLACES.districts[c]);
+      const dChips = order.map(c => `<button class="chip ${c === code ? 'active' : ''}" data-ld="${c}">${esc(PLACES.districts[c].name)}</button>`).join('');
+      let head, filters, body;
+      if (k === 'food') {
+        const t = q.get('t') || 'rank', list = foodList(t, code);
+        const tabs = [['rank', '🏆 扫街榜'], ['local', `📍 ${D.name}高分`], ['cheap', '💰 人均 ≤ ¥60'], ['cafe', '☕ 咖啡茶饮']];
+        head = `吃什么 · ${esc(D.name)}<small> · ${list.length} 家</small>`;
+        filters = `<div class="chips">${tabs.map(([v, n]) => `<button class="chip ${t === v ? 'active' : ''}" data-lt="${v}">${esc(n)}</button>`).join('')}</div>`;
+        body = `<div class="rlist">${list.map(foodRow).join('') || '<div class="panel empty">暂无</div>'}</div>`;
+      } else {
+        const c = q.get('c') || 'rec', f = q.get('f') || 'all';
+        let list = placeList(code, c);
+        const tabs = [['rec', '推荐'], ...PLACES.cats.filter(x => x.id !== 'food').map(x => [x.id, x.name])];
+        const seg = [['all', '全部'], ['free', '只看免费'], ['paid', '收费']].map(([v, n]) => `<button class="${f === v ? 'active' : ''}" data-lf="${v}">${n}<span class="n num">${v === 'all' ? list.length : list.filter(x => x.fee === v).length}</span></button>`).join('');
+        if (f !== 'all') list = list.filter(x => x.fee === f);
+        const catName = (tabs.find(x => x[0] === c) || [])[1] || '';
+        head = `玩什么 · ${esc(D.name)} · ${esc(catName)}<small> · ${list.length} 个</small>`;
+        filters = `<div class="bar2"><div class="chips">${tabs.map(([v, n]) => `<button class="chip ${c === v ? 'active' : ''}" data-lc="${v}">${CAT_ICON[v] || ''} ${esc(n)}</button>`).join('')}</div><div class="seg">${seg}</div></div>`;
+        body = `<div class="pgrid">${list.map(placeCard).join('') || '<div class="panel empty" style="grid-column:1/-1">这个区暂时没有这类地点</div>'}</div>`;
+      }
+      $('#listview').innerHTML = `<div class="lv-head"><a class="lv-back" href="#" data-back>← 返回</a><h2>${head}</h2></div>
+        <div class="chips">${dChips}</div>${filters}${body}`;
+      $('#listview').onclick = e => {
+        const el = e.target.closest('[data-back],[data-ld],[data-lt],[data-lc],[data-lf],[data-pid]'); if (!el) return;
+        e.preventDefault();
+        if ('back' in el.dataset) return history.length > 1 && wasListEntered ? history.back() : (location.hash = '');
+        if (el.dataset.pid) return openPlace(el.dataset.pid);
+        if (el.dataset.ld) return set({ d: el.dataset.ld });
+        if (el.dataset.lt) return set({ t: el.dataset.lt });
+        if (el.dataset.lc) return set({ c: el.dataset.lc, f: 'all' });
+        if (el.dataset.lf) return set({ f: el.dataset.lf });
+      };
+    }
+    let wasListEntered = false;                  // 从首页点进来的才用 history.back()，直接打开链接的回首页
+    document.addEventListener('click', e => { if (e.target.closest('.see-all')) wasListEntered = true; });
+    $('#pl-grid').addEventListener('click', e => { const a = e.target.closest('[data-pid]'); if (!a) return; e.preventDefault(); openPlace(a.dataset.pid); });
+    $('#pl-modal').addEventListener('click', e => {
+      if (e.target.id === 'pl-modal' || e.target.closest('[data-close]')) return closePlace();
+      const g = e.target.closest('[data-g]'), gi = e.target.closest('[data-gi]');
+      if (g || gi) { const n = CUR.photos.length; galIdx = gi ? +gi.dataset.gi : (galIdx + +g.dataset.g + n) % n; renderSheet(); }
+    });
+    addEventListener('keydown', e => { if (e.key === 'Escape') closePlace(); });
+    addEventListener('popstate', route);
+    addEventListener('hashchange', route);
+
     // 下一个假期（拼假攻略站的数据）
+    let HOL = '';
+    function addHol() { const el = $('#wk-sub'); if (HOL && !el.querySelector('.hol')) el.insertAdjacentHTML('beforeend', HOL); }
     async function loadHoliday() {
       try {
         const h = await fetch('https://climb0516.github.io/holiday-planner/data.json', { cache: 'no-cache' }).then(r => r.json());
         const n = h.summary?.next; if (!n) return;
-        const el = $('#wk-sub');
-        if (!el.querySelector('.hol')) el.insertAdjacentHTML('beforeend', ` · <span class="hol">下个假期 <b>${esc(n.name)}</b> ${md(n.date)}，还有 ${n.days} 天${n.est ? '（预估）' : ''}</span>`);
+        HOL = ` · <span class="hol">下个假期 <b>${esc(n.name)}</b> ${md(n.date)}，还有 ${n.days} 天${n.est ? '（预估）' : ''}</span>`;
+        addHol();
       } catch (e) {}
     }
+
+    // 活动：免费活动 / 演出玩乐 两个标签切换
+    $('#ev-tab').addEventListener('click', e => {
+      const b = e.target.closest('[data-t]'); if (!b) return;
+      $('#ev-tab').querySelectorAll('button').forEach(x => x.classList.toggle('active', x === b));
+      $('#ev-free').hidden = b.dataset.t !== 'free'; $('#ev-fun').hidden = b.dataset.t !== 'fun';
+    });
 
     let DATA = null;
     async function load() {

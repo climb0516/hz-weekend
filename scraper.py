@@ -514,16 +514,16 @@ DISTRICTS = [                                    # 余杭默认，排第一
 ]
 DEFAULT_DISTRICT = "330110"
 PLACE_CATS = [                                   # (id, 名称, 搜索关键词)
-    ("camp", "露营", ["露营地", "露营"]),
+    ("camp", "露营", ["露营地", "露营", "公园露营", "免费露营", "野营点"]),
     ("outdoor", "户外", ["郊野公园", "森林公园", "湿地公园", "徒步登山", "绿道", "风景区"]),
-    ("kids", "遛娃", ["亲子乐园", "儿童乐园", "动物园", "亲子农场", "采摘园"]),
+    ("kids", "遛娃", ["亲子乐园", "儿童乐园", "动物园", "亲子农场", "采摘园", "儿童公园", "公园儿童游乐区", "草坪公园"]),
     ("indoor", "雨天室内", ["室内儿童乐园", "科技馆", "博物馆", "室内游乐场"]),
     ("food", "吃喝", ["农家乐", "亲子餐厅", "特色餐厅", "咖啡馆"]),
 ]
 AMAP_BUDGET = 100                                # 每次运行最多调用次数（个人开发者免费额度有限）
 REFRESH_DAYS = {DEFAULT_DISTRICT: 1}             # 余杭每天刷新，其余区 5 天轮一遍
 REFRESH_OTHER = 5
-KEEP_PER_CAT = 24
+KEEP_PER_CAT = 30
 
 
 def amap_key():
@@ -568,6 +568,9 @@ def slim_poi(p, cat):
         "cost": (lambda c: c if c and c < 1000 else None)(num_or_none(b.get("cost"))),   # 人均上千多是会员卡价，不显示
         "open": b.get("opentime_today") or b.get("opentime_week") or "", "tags": [t for t in tag if t],
         "photos": photos,
+        # 详情弹窗用：每周营业时间、电话、高德的类型标签和推荐标签（如「露营地」「烤肉」）
+        "week": b.get("opentime_week") or "", "tel": (b.get("tel") or "").split(";")[0],
+        "keytag": b.get("keytag") or "", "rectag": b.get("rectag") or "",
     }
 
 
@@ -581,6 +584,31 @@ def keep(p, cat):
     if cat == "camp" and not re.search(r"露营|营地|帐篷|房车", p["name"] + p["type"]):
         return False
     return True
+
+
+# 收费 / 免费判断：有人均 = 收费；公园、绿道、步道、场馆、村头露营点这类没有人均的 = 免费；
+# 景区、寺庙、国家湿地公园这类可能要门票的不下结论（前端显示「门票待确认」）
+FREE_RE = re.compile(r"公园|绿道|古道|步道|广场|草坪|露营点|野营|野地|博物馆|博物院|美术馆|纪念馆|图书馆|科普馆|展览馆|科技馆|文化馆|遗址|版本馆")
+UNSURE_RE = re.compile(r"景区|风景区|名胜区|国家湿地|寺|庙|观|度假|乐园|游乐|农场|农庄|酒店|民宿|俱乐部|动物园|水上|滑雪|温泉|店\)|店）|店$")   # 带「…店」的是门店，不算免费
+
+
+def fee_of(x):
+    if x.get("cost"):
+        return "paid"
+    t = x["name"] + x.get("type", "")
+    if FREE_RE.search(t) and not UNSURE_RE.search(x["name"]) and "住宿" not in x.get("type", ""):
+        return "free"
+    return ""
+
+
+def pick(found):
+    """每类最多 KEEP_PER_CAT 个：免费的优先占 2/3，其余给收费 / 待确认的，各自按评分排。"""
+    for x in found:
+        x["fee"] = fee_of(x)
+    free = rank([x for x in found if x["fee"] == "free"])
+    rest = rank([x for x in found if x["fee"] != "free"])
+    n_free = min(len(free), KEEP_PER_CAT * 2 // 3)
+    return free[:n_free] + rest[:KEEP_PER_CAT - n_free]
 
 
 def rank(places):
@@ -628,7 +656,7 @@ def places():
                         found.append(x)
                     calls += 1
                     time.sleep(0.35)                      # 个人开发者 QPS 很低
-                cats[cid] = rank(found)[:KEEP_PER_CAT]
+                cats[cid] = pick(found)
         except AmapQuota as e:
             err = f"高德额度 / key 问题：{e}"
             break
@@ -639,6 +667,9 @@ def places():
         done.append(names[code])
     for d in dists.values():                      # 过滤规则调整后，旧数据也按新规则筛一遍
         d["cats"] = {cid: [x for x in lst if keep(x, cid)] for cid, lst in d.get("cats", {}).items()}
+        for lst in d["cats"].values():
+            for x in lst:
+                x["fee"] = fee_of(x)
     out = {
         "updated": now_cst().isoformat(timespec="seconds") if done else old.get("updated"),
         "default": DEFAULT_DISTRICT,
@@ -646,9 +677,77 @@ def places():
         "cats": [{"id": c, "name": n} for c, n, _ in PLACE_CATS],
         "districts": dists,
         "status": {"ok": err is None, "error": err, "calls": calls, "refreshed": done},
+        "rankings": old.get("rankings") or {},
     }
+    if key:
+        try:
+            out["rankings"] = rankings(key, old.get("rankings") or {})
+            print(f"✓ 扫街榜: " + "、".join(f"{k} {len(v)}" for k, v in out["rankings"].get("lists", {}).items()))
+        except Exception as e:                    # 榜单出错沿用上次
+            print(f"✗ 扫街榜: {type(e).__name__}: {e}")
     PLACES_FILE.write_text(json.dumps(out, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
     print(f"{'✓' if err is None else '✗'} 地点推荐: 刷新 {'、'.join(done) or '无'}，调用 {calls} 次" + (f"，{err}" if err else ""))
+
+
+# ── 高德扫街榜（网页版状元榜 / 极致甄选 / 景点榜）──────────────────────
+# amap.com/ranking/hangzhou/<榜单>[/<区 adcode>] 是服务端渲染的静态页：城市页是前 20，区页是其中落在该区的。
+# 网页版目前是 2025 年度榜，高德更新网页后这里自动跟着换。
+RANK_LISTS = [("food", "状元榜·美食"), ("select-food", "极致甄选"), ("scenic", "状元榜·景点")]
+
+
+def parse_ranking(h):
+    out = []
+    for i, (pid, body) in enumerate(re.findall(r'<a href="/place/(B0\w+)" class="poi-card"[^>]*>(.*?)</a>', h, re.S), 1):
+        name = re.search(r'class="poi-name">(.*?)</div>', body, re.S)
+        img = re.search(r'<img src="([^"]+)"', body)
+        score = re.search(r"综合分\s*([\d.]+)", body)
+        tags = [clean(t) for t in re.findall(r'<span style="display: inline-block[^"]*">(.*?)</span>', body, re.S)]
+        out.append({"id": pid, "rank": i, "name": clean(name.group(1)) if name else "", "score": float(score.group(1)) if score else None,
+                    "img": img.group(1).replace("http://", "https://", 1) if img else "", "dishes": [t for t in tags if t][:4]})
+    return out
+
+
+def rankings(key, old):
+    if (old.get("updated") or "")[:10] == now_cst().date().isoformat() and old.get("lists"):
+        return old                                     # 年度榜，一天看一次就够
+    title = re.compile(r'<h1 class="ranking-title">(.*?)</h1>')
+    lists, year = {}, old.get("title", {})
+    for slug, name in RANK_LISTS:
+        h = fetch(f"https://www.amap.com/ranking/hangzhou/{slug}")
+        items = parse_ranking(h)
+        t = title.search(h)
+        year[slug] = clean(t.group(1)) if t else name
+        # 区页：只用来给条目标注所在区（城市页里没有区信息）
+        for code, _ in DISTRICTS:
+            try:
+                for x in parse_ranking(fetch(f"https://www.amap.com/ranking/hangzhou/{slug}/{code}", retries=0)):
+                    for y in items:
+                        if y["id"] == x["id"]:
+                            y["adcode"] = code
+            except Exception:
+                pass                                       # 有的区没有该榜单页面（404）
+            time.sleep(0.3)
+        lists[slug] = items
+    # 用高德详情接口补坐标、人均、地址、照片（每次最多 10 个 id），已补过的沿用
+    known = {x["id"]: x for l in (old.get("lists") or {}).values() for x in l if x.get("lng")}
+    need = [x for l in lists.values() for x in l if x["id"] not in known]
+    for i in range(0, len(need), 10):
+        batch = need[i:i + 10]
+        q = urllib.parse.urlencode({"id": "|".join(x["id"] for x in batch), "show_fields": "business,photos", "key": key})
+        d = fetch_json(f"https://restapi.amap.com/v5/place/detail?{q}")
+        for p in d.get("pois") or []:
+            known[p["id"]] = slim_poi(p, "")
+        time.sleep(0.35)
+    for l in lists.values():
+        for x in l:
+            k = known.get(x["id"])
+            if k:
+                photos = ([x["img"]] if x["img"] else []) + [u for u in k["photos"] if u != x["img"]]
+                x.update({kk: v for kk, v in k.items() if kk not in ("id", "name", "cat", "photos")}, photos=photos[:3])
+                x.setdefault("adcode", next((c for c, n in DISTRICTS if n and k.get("area", "").startswith(n)), ""))
+            elif x["img"]:
+                x["photos"] = [x["img"]]
+    return {"updated": now_cst().isoformat(timespec="seconds"), "title": year, "lists": lists}
 
 
 if __name__ == "__main__":
