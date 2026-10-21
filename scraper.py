@@ -3,7 +3,7 @@
 
 每个来源单独 try，失败时沿用上一次 data.json 里该来源的数据并标 stale。
 """
-import html, json, re, ssl, time, urllib.parse, urllib.request
+import html, json, re, socket, ssl, time, urllib.parse, urllib.request
 from datetime import datetime, timezone, timedelta, date
 from pathlib import Path
 
@@ -20,6 +20,36 @@ LOOKAHEAD_DAYS = 45                   # 活动只保留这么多天内开始的
 
 # 国美美术馆的证书链不完整（缺中间证书），只对它跳过校验；只读公开页面
 INSECURE_HOSTS = {"caam.caa.edu.cn"}
+
+# 部分站点（浙江图书馆）只对国内解析，Actions 的海外 DNS 查不到。系统 DNS 失败时改问阿里 DoH，
+# 只替换解析结果，TLS 的 SNI 和 Host 仍是原域名
+_sys_getaddrinfo = socket.getaddrinfo
+_doh_cache = {}
+
+
+def _doh_resolve(host):
+    if host not in _doh_cache:
+        url = "https://dns.alidns.com/resolve?" + urllib.parse.urlencode({"name": host, "type": "A"})
+        with urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": UA}), timeout=10) as r:
+            ans = json.loads(r.read().decode()).get("Answer", [])
+        _doh_cache[host] = [a["data"] for a in ans if a.get("type") == 1]
+    return _doh_cache[host]
+
+
+def _getaddrinfo(host, port, *args, **kw):
+    try:
+        return _sys_getaddrinfo(host, port, *args, **kw)
+    except socket.gaierror:
+        if not isinstance(host, str) or host == "dns.alidns.com":
+            raise
+        ips = _doh_resolve(host)
+        if not ips:
+            raise
+        print(f"  DoH: {host} -> {ips[0]}")
+        return _sys_getaddrinfo(ips[0], port, *args, **kw)
+
+
+socket.getaddrinfo = _getaddrinfo
 
 
 def fetch(url, timeout=20, headers=None, data=None, enc="utf-8", retries=2):
