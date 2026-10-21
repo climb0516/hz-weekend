@@ -192,7 +192,28 @@
       .wk { grid-template-columns: 1fr 1fr; }
       .wk .side { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
     }
+    /* 去哪玩：照片卡 */
+    .pgrid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+    .pcard { display: flex; flex-direction: column; overflow: hidden; min-width: 0; transition: transform .15s; }
+    .pcard:hover { transform: translateY(-2px); }
+    .pcard .ph { position: relative; aspect-ratio: 4 / 3; background: var(--panel-2) center / cover no-repeat; transition: background-image .2s; }
+    .pcard .ph::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 55%, rgba(0,0,0,.55)); }
+    .pcard .cat { position: absolute; left: 10px; top: 10px; z-index: 1; font-size: 11.5px; font-weight: 600; padding: 2px 8px; border-radius: 6px; background: rgba(0,0,0,.55); color: #fff; }
+    .pcard .rt { position: absolute; right: 10px; bottom: 9px; z-index: 1; font-size: 13px; font-weight: 700; color: #fff; }
+    .pcard .rt small { font-weight: 500; opacity: .8; margin-left: 6px; }
+    .pcard .np { position: absolute; left: 10px; bottom: 9px; z-index: 1; display: flex; gap: 4px; }
+    .pcard .np i { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,.5); }
+    .pcard .np i.on { background: #fff; }
+    .pcard .pb { padding: 11px 13px 13px; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+    .pcard .pn { font-weight: 700; font-size: 14.5px; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .pcard .pm { font-size: 12.5px; color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .pcard .pt { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 2px; }
+    .rec-why { margin: -4px 0 12px; font-size: 13px; color: var(--text-2); }
+    @media (max-width: 1080px) { .pgrid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+
     @media (max-width: 760px) {
+      .pgrid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+      .pcard .pn { font-size: 13.5px; }
       .topbar-inner { padding: 10px 16px; gap: 10px; }
       .nav, .updated .txt { display: none; }
       .wrap { padding: 16px 16px 48px; }
@@ -215,7 +236,7 @@
     <div class="topbar-inner">
       <div class="logo"><div class="logo-mark">🌤</div>杭州周末指南</div>
       <nav class="nav">
-        <a href="#weather">天气</a><a href="#exhibitions">展览</a><a href="#free">免费活动</a><a href="#fun">演出玩乐</a>
+        <a href="#places">去哪玩</a><a href="#weather">天气</a><a href="#exhibitions">展览</a><a href="#free">免费活动</a><a href="#fun">演出玩乐</a>
       </nav>
       <div class="spacer"></div>
       <div class="updated"><span class="live-dot" id="dot"></span><span class="txt" id="updated">加载中…</span></div>
@@ -246,6 +267,11 @@
       <aside class="panel side" id="side"></aside>
     </div>
     <div class="panel days10" id="days10"></div>
+
+    <h2 class="section-title" id="places">🧭 这周末去哪 <small id="pl-sub"></small></h2>
+    <div class="chips" id="pl-district"></div>
+    <div class="chips" id="pl-cats"></div>
+    <div class="pgrid" id="pl-grid"></div>
 
     <h2 class="section-title" id="exhibitions">🖼 展览 <small id="exh-sub"></small></h2>
     <div class="chips" id="exh-filter"></div>
@@ -528,6 +554,85 @@
       $('#updated').textContent = `${t.getMonth() + 1}/${t.getDate()} ${String(t.getHours()).padStart(2, '0')}:${String(t.getMinutes()).padStart(2, '0')} 更新` + (bad ? ` · ${bad} 个来源异常` : '');
     }
 
+    // ── 去哪玩：高德 POI，按区 × 类别，「推荐」按周末天气混排 ──
+    let PLACES = null;
+    const plState = { district: store.get('district', null), cat: store.get('plCat', 'rec'), more: false };
+    const CAT_ICON = { rec: '✨', camp: '⛺', outdoor: '🌲', kids: '🧒', indoor: '☔', food: '🍜' };
+    async function loadPlaces() {
+      try {
+        PLACES = await fetch('places.json', { cache: 'no-cache' }).then(r => r.json());
+        renderPlaces();
+      } catch (e) { $('#pl-grid').innerHTML = '<div class="panel empty" style="grid-column:1/-1">地点数据加载失败</div>'; }
+    }
+    function weekendRainy() {
+      if (!DATA) return false;
+      const by = Object.fromEntries((DATA.daily || []).map(x => [x.date, x]));
+      const r = DATA.weekend.map(d => advise(by[d]).indoor);
+      return r[0] && r[1];
+    }
+    function recMix(cats) {
+      // 两天都有雨：室内 / 遛娃 / 吃喝；否则：露营 / 户外 / 遛娃 / 吃喝。按类别轮流取，避免一屏同一类
+      const order = weekendRainy() ? ['indoor', 'kids', 'food'] : ['camp', 'outdoor', 'kids', 'food'];
+      const lists = order.map(c => (cats[c] || []).slice());
+      const out = [];
+      while (out.length < 48 && lists.some(l => l.length)) lists.forEach(l => l.length && out.push(l.shift()));
+      return out;
+    }
+    function placeCard(p) {
+      const nav = `https://uri.amap.com/marker?position=${p.lng},${p.lat}&name=${encodeURIComponent(p.name)}&src=hz-weekend&callnative=1`;
+      const catName = (PLACES.cats.find(c => c.id === p.cat) || {}).name || '';
+      const meta = [p.area, p.type].filter(Boolean).join(' · ');
+      return `<a class="panel pcard" href="${esc(nav)}" target="_blank" rel="noopener" title="在高德地图打开">
+        <div class="ph" data-photos="${esc(JSON.stringify(p.photos))}" style="background-image:url('${esc(p.photos[0]).replace(/'/g, '%27')}')">
+          <span class="cat">${CAT_ICON[p.cat] || ''} ${esc(catName)}</span>
+          ${p.photos.length > 1 ? `<span class="np">${p.photos.map((_, i) => `<i class="${i ? '' : 'on'}"></i>`).join('')}</span>` : ''}
+          ${p.rating ? `<span class="rt">★ ${p.rating.toFixed(1)}${p.cost ? `<small>人均 ¥${Math.round(p.cost)}</small>` : ''}</span>` : p.cost ? `<span class="rt">人均 ¥${Math.round(p.cost)}</span>` : ''}
+        </div>
+        <div class="pb"><div class="pn">${esc(p.name)}</div>
+          <div class="pm">${esc(meta)}</div>
+          ${p.open ? `<div class="pm">🕘 ${esc(p.open)}</div>` : p.addr ? `<div class="pm">📍 ${esc(p.addr)}</div>` : ''}
+          ${p.tags?.length ? `<div class="pt">${p.tags.slice(0, 3).map(t => `<span class="badge">${esc(t)}</span>`).join('')}</div>` : ''}
+        </div></a>`;
+    }
+    function renderPlaces() {
+      if (!PLACES) return;
+      const order = PLACES.districts_order.filter(c => PLACES.districts[c]);
+      if (!PLACES.districts[plState.district]) plState.district = PLACES.default in PLACES.districts ? PLACES.default : order[0];
+      const D = PLACES.districts[plState.district], cats = D.cats;
+      $('#pl-district').innerHTML = order.map(c => `<button class="chip ${c === plState.district ? 'active' : ''}" data-d="${c}">${esc(PLACES.districts[c].name)}${c === PLACES.default ? '<span class="n">默认</span>' : ''}</button>`).join('');
+      const tabs = [['rec', '推荐'], ...PLACES.cats.map(c => [c.id, c.name])];
+      $('#pl-cats').innerHTML = tabs.map(([id, n]) => `<button class="chip ${plState.cat === id ? 'active' : ''}" data-c="${id}">${CAT_ICON[id] || ''} ${esc(n)}${id === 'rec' ? '' : `<span class="n">${(cats[id] || []).length}</span>`}</button>`).join('');
+      const list = plState.cat === 'rec' ? recMix(cats) : (cats[plState.cat] || []);
+      const shown = plState.more ? list : list.slice(0, 12);
+      const rainy = weekendRainy();
+      $('#pl-sub').textContent = `${D.name}区 · 高德地图评分与照片 · 点卡片直接导航`;
+      $('#pl-grid').innerHTML = (plState.cat === 'rec' ? `<div class="rec-why" style="grid-column:1/-1">${rainy ? '☔ 这周末两天都有雨，优先推荐室内遛娃、博物馆和吃喝' : '🌿 周末天气还行，优先推荐露营、户外和遛娃'}</div>` : '')
+        + (shown.length ? shown.map(placeCard).join('') : '<div class="panel empty" style="grid-column:1/-1">这个区暂时没有这类地点</div>')
+        + (list.length > shown.length ? `<button class="panel more" style="grid-column:1/-1;border-radius:12px" data-more="1">展开全部 ${list.length} 个</button>` : '');
+    }
+    $('#pl-district').addEventListener('click', e => { const b = e.target.closest('[data-d]'); if (!b) return; plState.district = b.dataset.d; plState.more = false; store.set('district', plState.district); renderPlaces(); });
+    $('#pl-cats').addEventListener('click', e => { const b = e.target.closest('[data-c]'); if (!b) return; plState.cat = b.dataset.c; plState.more = false; store.set('plCat', plState.cat); renderPlaces(); });
+    $('#pl-grid').addEventListener('click', e => { if (e.target.closest('[data-more]')) { e.preventDefault(); plState.more = true; renderPlaces(); } });
+    // 鼠标在照片上左右移动切换同一地点的 3 张照片
+    $('#pl-grid').addEventListener('mousemove', e => {
+      const ph = e.target.closest('.ph[data-photos]'); if (!ph) return;
+      const photos = JSON.parse(ph.dataset.photos); if (photos.length < 2) return;
+      const r = ph.getBoundingClientRect(), i = Math.min(photos.length - 1, Math.floor((e.clientX - r.left) / r.width * photos.length));
+      if (ph.dataset.i == i) return;
+      ph.dataset.i = i; ph.style.backgroundImage = `url('${photos[i].replace(/'/g, '%27')}')`;
+      ph.querySelectorAll('.np i').forEach((d, k) => d.classList.toggle('on', k === i));
+    });
+
+    // 下一个假期（拼假攻略站的数据）
+    async function loadHoliday() {
+      try {
+        const h = await fetch('https://climb0516.github.io/holiday-planner/data.json', { cache: 'no-cache' }).then(r => r.json());
+        const n = h.summary?.next; if (!n) return;
+        const el = $('#wk-sub');
+        if (!el.querySelector('.hol')) el.insertAdjacentHTML('beforeend', ` · <span class="hol">下个假期 <b>${esc(n.name)}</b> ${md(n.date)}，还有 ${n.days} 天${n.est ? '（预估）' : ''}</span>`);
+      } catch (e) {}
+    }
+
     let DATA = null;
     async function load() {
       const btn = $('#reload');
@@ -537,6 +642,7 @@
         const d = await fetch('data.json', { cache: 'no-cache' }).then(r => r.json());
         DATA = d;
         renderWeather(d); renderExh(d); renderEvents(d); renderSources(d);
+        loadPlaces(); loadHoliday();
       } catch (e) {
         if (!DATA) $('#updated').textContent = '数据加载失败';
         console.error(e);

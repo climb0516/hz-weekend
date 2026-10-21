@@ -3,7 +3,7 @@
 
 每个来源单独 try，失败时沿用上一次 data.json 里该来源的数据并标 stale。
 """
-import html, json, re, socket, ssl, time, urllib.parse, urllib.request
+import html, json, os, re, socket, ssl, time, urllib.parse, urllib.request
 from datetime import datetime, timezone, timedelta, date
 from pathlib import Path
 
@@ -499,6 +499,158 @@ def main():
     }
     DATA_FILE.write_text(json.dumps(data, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
     print(f"done: {len(uniq)} 展览 / {len(events)} 活动 / {len(free)} 免费")
+    try:
+        places()
+    except Exception as e:                     # 地点推荐出错不影响天气 / 展览 / 活动
+        print(f"✗ 地点推荐: {type(e).__name__}: {e}")
+
+
+# ── 地点推荐：高德 Web 服务 POI 搜索（按区 × 类别，只留有照片的）────────────
+PLACES_FILE = ROOT / "places.json"
+DISTRICTS = [                                    # 余杭默认，排第一
+    ("330110", "余杭"), ("330106", "西湖"), ("330105", "拱墅"), ("330102", "上城"), ("330108", "滨江"),
+    ("330113", "临平"), ("330109", "萧山"), ("330114", "钱塘"), ("330111", "富阳"), ("330112", "临安"),
+    ("330122", "桐庐"), ("330127", "淳安"), ("330182", "建德"),
+]
+DEFAULT_DISTRICT = "330110"
+PLACE_CATS = [                                   # (id, 名称, 搜索关键词)
+    ("camp", "露营", ["露营地", "露营"]),
+    ("outdoor", "户外", ["郊野公园", "森林公园", "湿地公园", "徒步登山", "绿道", "风景区"]),
+    ("kids", "遛娃", ["亲子乐园", "儿童乐园", "动物园", "亲子农场", "采摘园"]),
+    ("indoor", "雨天室内", ["室内儿童乐园", "科技馆", "博物馆", "室内游乐场"]),
+    ("food", "吃喝", ["农家乐", "亲子餐厅", "特色餐厅", "咖啡馆"]),
+]
+AMAP_BUDGET = 100                                # 每次运行最多调用次数（个人开发者免费额度有限）
+REFRESH_DAYS = {DEFAULT_DISTRICT: 1}             # 余杭每天刷新，其余区 5 天轮一遍
+REFRESH_OTHER = 5
+KEEP_PER_CAT = 24
+
+
+def amap_key():
+    k = os.environ.get("AMAP_KEY", "").strip()
+    if not k and (ROOT / ".amap_key").exists():  # 本地调试用，文件已在 .gitignore
+        k = (ROOT / ".amap_key").read_text().strip()
+    return k
+
+
+class AmapQuota(Exception):
+    pass
+
+
+def amap_search(key, keywords, adcode, page=1):
+    q = urllib.parse.urlencode({"keywords": keywords, "region": adcode, "city_limit": "true", "page_size": 25,
+                                "page_num": page, "show_fields": "business,photos", "key": key})
+    d = fetch_json(f"https://restapi.amap.com/v5/place/text?{q}")
+    if d.get("status") != "1":
+        info = d.get("info", "")
+        if "LIMIT" in info or "QUOTA" in info or info in ("INVALID_USER_KEY", "USERKEY_PLAT_NOMATCH"):
+            raise AmapQuota(info)
+        raise RuntimeError(info)
+    return d.get("pois") or []
+
+
+def num_or_none(v):
+    try:
+        return float(v)
+    except (TypeError, ValueError):
+        return None
+
+
+def slim_poi(p, cat):
+    b = p.get("business") or {}
+    photos = [ph["url"].replace("http://", "https://", 1) for ph in (p.get("photos") or []) if ph.get("url")][:3]
+    lng, lat = (p.get("location") or ",").split(",")[:2]
+    tag = (b.get("tag") or "").split(",")[:3]
+    return {
+        "id": p["id"], "name": p["name"], "cat": cat, "type": (p.get("type") or "").split("|")[0].split(";")[-1],
+        "addr": p.get("address") if isinstance(p.get("address"), str) else "", "area": p.get("adname") or "",
+        "lng": lng, "lat": lat, "rating": num_or_none(b.get("rating")),
+        "cost": (lambda c: c if c and c < 1000 else None)(num_or_none(b.get("cost"))),   # 人均上千多是会员卡价，不显示
+        "open": b.get("opentime_today") or b.get("opentime_week") or "", "tags": [t for t in tag if t],
+        "photos": photos,
+    }
+
+
+# 名字像服务设施 / 门店配套的不算推荐地点
+NOT_PLACE = re.compile(r"租赁|集散中心|停车场|售票|游客中心|服务中心|管理处|公厕|卫生间|入口|出口|充电站|地铁站|公交站|驾校|培训")
+
+
+def keep(p, cat):
+    if NOT_PLACE.search(p["name"]):
+        return False
+    if cat == "camp" and not re.search(r"露营|营地|帐篷|房车", p["name"] + p["type"]):
+        return False
+    return True
+
+
+def rank(places):
+    # 有评分的按评分，评分相同看有无人均；没评分的（公园、绿道常见）排后面但保留
+    return sorted(places, key=lambda x: (-(x["rating"] or 3.9), -len(x["photos"])))
+
+
+def places():
+    key = amap_key()
+    old = {}
+    try:
+        old = json.loads(PLACES_FILE.read_text(encoding="utf-8"))
+    except Exception:
+        pass
+    dists = old.get("districts", {})
+    if not key:
+        print("✗ 地点推荐: 没有 AMAP_KEY，沿用旧数据")
+        return
+    today = now_cst().date()
+
+    def due(code):
+        last = dists.get(code, {}).get("updated")
+        days = REFRESH_DAYS.get(code, REFRESH_OTHER)
+        return not last or (today - date.fromisoformat(last[:10])).days >= days
+
+    # 余杭优先，其余按上次刷新时间从旧到新
+    order = [c for c, _ in DISTRICTS if due(c)]
+    order.sort(key=lambda c: (c != DEFAULT_DISTRICT, dists.get(c, {}).get("updated") or ""))
+    calls, done, err = 0, [], None
+    names = dict(DISTRICTS)
+    for code in order:
+        need = sum(len(k) for _, _, k in PLACE_CATS)
+        if calls + need > AMAP_BUDGET:
+            break
+        cats, seen = {}, set()
+        try:
+            for cid, _, kws in PLACE_CATS:
+                found = []
+                for kw in kws:
+                    for p in amap_search(key, kw, code):
+                        if p["id"] in seen or not p.get("photos"):
+                            continue
+                        x = slim_poi(p, cid)
+                        if not keep(x, cid):
+                            continue
+                        seen.add(p["id"])                 # 同一地点只归入第一个命中的类别
+                        found.append(x)
+                    calls += 1
+                    time.sleep(0.35)                      # 个人开发者 QPS 很低
+                cats[cid] = rank(found)[:KEEP_PER_CAT]
+        except AmapQuota as e:
+            err = f"高德额度 / key 问题：{e}"
+            break
+        except Exception as e:
+            err = f"{type(e).__name__}: {e}"[:120]
+            continue
+        dists[code] = {"name": names[code], "updated": now_cst().isoformat(timespec="seconds"), "cats": cats}
+        done.append(names[code])
+    for d in dists.values():                      # 过滤规则调整后，旧数据也按新规则筛一遍
+        d["cats"] = {cid: [x for x in lst if keep(x, cid)] for cid, lst in d.get("cats", {}).items()}
+    out = {
+        "updated": now_cst().isoformat(timespec="seconds") if done else old.get("updated"),
+        "default": DEFAULT_DISTRICT,
+        "districts_order": [c for c, _ in DISTRICTS],
+        "cats": [{"id": c, "name": n} for c, n, _ in PLACE_CATS],
+        "districts": dists,
+        "status": {"ok": err is None, "error": err, "calls": calls, "refreshed": done},
+    }
+    PLACES_FILE.write_text(json.dumps(out, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+    print(f"{'✓' if err is None else '✗'} 地点推荐: 刷新 {'、'.join(done) or '无'}，调用 {calls} 次" + (f"，{err}" if err else ""))
 
 
 if __name__ == "__main__":

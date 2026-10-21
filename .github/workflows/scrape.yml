@@ -27,13 +27,15 @@ jobs:
         with:
           python-version: '3.12'
       - name: Run scraper
+        env:
+          AMAP_KEY: ${{ secrets.AMAP_KEY }}   # 高德 Web 服务 key（地点推荐），在仓库 Settings → Secrets 里配置
         run: python scraper.py
       - name: Commit data.json
         # data.json 里的 updated 每次都变，所以每次运行都会提交，仓库保持活跃、定时任务不会被停用
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data.json
+          git add data.json places.json
           git diff --cached --quiet || git commit -m "data: update $(TZ=Asia/Shanghai date '+%Y-%m-%d %H:%M')"
           git pull --rebase
           git push
