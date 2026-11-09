@@ -216,6 +216,19 @@
     .lv-back:hover { color: var(--text-1); border-color: var(--line-2); }
     .lv-head h2 { font-size: 22px; font-weight: 800; letter-spacing: -0.02em; }
     .lv-head small { color: var(--text-3); font-size: 13px; }
+    /* 列表页：新开一层从右侧滑入盖在首页上，返回时滑走；首页一直在底下不动（滚动位置不变）。层级低于地点详情弹框 */
+    html { scrollbar-gutter: stable; }
+    html.hz-layered { overflow: hidden; }
+    .hz-dim { position: fixed; inset: 0; z-index: 49; background: rgba(0,0,0,.45); opacity: 0; pointer-events: none; transition: opacity .34s ease; }
+    .hz-dim.on { opacity: 1; }
+    .hz-layer { position: fixed; inset: 0; z-index: 50; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; background: var(--bg);
+      box-shadow: -12px 0 32px rgba(0,0,0,.3); transform: translateX(100%); visibility: hidden; transition: transform .34s cubic-bezier(.2,.8,.2,1), visibility 0s linear .34s; }
+    .hz-layer.in { transform: none; visibility: visible; transition: transform .34s cubic-bezier(.2,.8,.2,1); }
+    .hz-layer.noanim, .hz-layer.dragging { transition: none; }
+    .hz-layer .wrap { padding-top: 0; }
+    .hz-layer .lv-head { position: sticky; top: 0; z-index: 5; margin: 0 -20px 14px; padding: 12px 20px; background: var(--bg); border-bottom: 1px solid var(--line); }
+    @media (max-width: 640px) { .hz-layer .lv-head { margin: 0 -16px 12px; padding: 10px 16px; } }
+    @media (prefers-reduced-motion: reduce) { .hz-layer, .hz-dim { transition: none; } }
     .pcard .pt { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 2px; }
     .rec-why { margin: -4px 0 12px; font-size: 13px; color: var(--text-2); }
     /* 一行天气条 */
@@ -331,8 +344,9 @@
     </div>
   </header>
 
+  <div class="hz-dim" id="hzDim"></div>
+  <section class="hz-layer" id="hzLayer"><div class="wrap" id="listview"></div></section>
   <main class="wrap">
-    <div id="listview" hidden></div>
     <div id="home">
     <section class="hero" id="weather">
       <h1>杭州 · <em id="wk-title">本周末</em>去哪</h1>
@@ -862,16 +876,23 @@
       if (back && parseHash().place) history.back();
     }
     function openFromHash() { const id = parseHash().place; if (id) openPlace(id, false); }
-    let homeScroll = 0, wasList = false;
-    function route() {
+    // 列表层：打开时从右侧滑入，关闭时滑走；首页不隐藏也不滚动。e 为空 = 页面刚加载（直接打开的链接，不播进场）
+    let wasList = false, hzSwiped = false;
+    function layerShow(on, anim) {
+      const L = $('#hzLayer');
+      if (!anim || hzSwiped) L.classList.add('noanim');
+      hzSwiped = false;
+      if (on) { L.scrollTop = 0; void L.offsetWidth; }
+      L.classList.toggle('in', on); L.style.transform = ''; $('#hzDim').classList.toggle('on', on);
+      document.documentElement.classList.toggle('hz-layered', on);
+      if (L.classList.contains('noanim')) { void L.offsetWidth; L.classList.remove('noanim'); }
+      else if (!on) setTimeout(() => { if (!L.classList.contains('in')) $('#listview').innerHTML = ''; }, 400);
+      console.debug('[HZ]', on ? '打开列表层' : '关闭列表层');
+    }
+    function route(e) {
       if (!PLACES) return;
       const { isList, q, place } = parseHash();
-      if (isList !== wasList) {
-        if (isList) homeScroll = scrollY;
-        $('#home').hidden = isList; $('#listview').hidden = !isList;
-        if (isList) scrollTo(0, 0); else requestAnimationFrame(() => scrollTo(0, homeScroll));
-        wasList = isList;
-      }
+      if (isList !== wasList) { layerShow(isList, !!e); wasList = isList; }
       if (isList) renderListView(q);
       if (place) openPlace(place, false); else closePlace(false);
     }
@@ -923,6 +944,30 @@
     addEventListener('keydown', e => { if (e.key === 'Escape') closePlace(); });
     addEventListener('popstate', route);
     addEventListener('hashchange', route);
+    // 手机右滑返回（安卓）：从左边缘向右拖动列表层；iOS 有系统手势，让给系统
+    (() => {
+      if (/iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) return;
+      const el = $('#hzLayer');
+      let x0 = null, y0 = 0, dx = 0, t0 = 0, active = false;
+      el.addEventListener('touchstart', e => {
+        if (e.touches.length !== 1 || !$('#pl-modal').hidden) return;
+        const t = e.touches[0]; if (t.clientX > 28) return;
+        x0 = t.clientX; y0 = t.clientY; dx = 0; t0 = Date.now(); active = false;
+      }, { passive: true });
+      el.addEventListener('touchmove', e => {
+        if (x0 == null) return;
+        const t = e.touches[0]; dx = Math.max(0, t.clientX - x0);
+        if (!active) { if (Math.abs(t.clientY - y0) > 12 && Math.abs(t.clientY - y0) > dx) { x0 = null; return; } if (dx < 10) return; active = true; el.classList.add('dragging'); }
+        el.style.transform = `translateX(${dx}px)`;
+      }, { passive: true });
+      el.addEventListener('touchend', () => {
+        if (x0 == null) return;
+        const done = active && (dx > innerWidth / 3 || (dx > 60 && dx / (Date.now() - t0) > 0.5));
+        x0 = null; el.classList.remove('dragging');
+        if (done) { el.style.transform = `translateX(${innerWidth}px)`; hzSwiped = true; setTimeout(() => el.querySelector('[data-back]')?.click(), 220); }
+        else el.style.transform = '';
+      });
+    })();
 
     // 下一个假期（拼假攻略站的数据）
     let HOL = '';
